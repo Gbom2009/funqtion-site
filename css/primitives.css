@@ -1,0 +1,621 @@
+/* ---------------------------------------------------------------------------
+   primitives.css  -  Team Funqtion structural primitives
+   Adapted from TELETECH-EVENTS-DESIGN-REFERENCE.md chapter 32.2.
+   Grid, section, datasheet, bracketed button, hairlines, menu, event tile,
+   plus the chrome (top bar, footer, grain host).
+   --------------------------------------------------------------------------- */
+
+/* ===========================================================================
+   1. The 12-column grid
+   The gap is ZERO. Column boundaries are shared reference lines across the
+   whole page; separation comes from items not filling their span, or from a
+   hairline. A grid with gutters is a different design. (reference 7.3)
+   =========================================================================== */
+
+.fq-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--fq-grid-columns, 12), 1fr);
+  grid-auto-rows: auto;
+  gap: 0;                      /* deliberate */
+  inline-size: 100%;
+  position: relative;
+}
+.fq-grid--padded { padding-inline: var(--fq-gutter); }
+
+/* Children. Default span 12 so an unplaced child still lands on the lattice. */
+.fq-cell {
+  grid-column: var(--col-start, auto) / span var(--col-span, 12);
+  min-inline-size: 0;
+}
+
+@media screen and (max-width: 767px) {
+  .fq-cell {
+    grid-column: var(--col-start-m, auto) / span var(--col-span-m, var(--col-span, 12));
+  }
+}
+@media screen and (max-width: 479px) {
+  .fq-cell {
+    grid-column: var(--col-start-s, auto) / span var(--col-span-s, var(--col-span-m, var(--col-span, 12)));
+  }
+}
+
+/* ===========================================================================
+   2. The section wrapper
+   =========================================================================== */
+
+.fq-section {
+  inline-size: 100%;
+  position: relative;
+  padding-block: var(--fq-space-25);
+}
+.fq-section--tight { padding-block: var(--fq-space-15); }
+.fq-section--first { padding-block-start: var(--fq-space-20); }
+.fq-section--screen { min-block-size: 100svh; display: flex; align-items: center; }
+
+@media screen and (max-width: 767px) {
+  .fq-section { padding-block: var(--fq-space-15); }
+  .fq-section--tight { padding-block: var(--fq-space-10); }
+}
+
+/* A full-bleed hairline between sections. */
+.fq-section + .fq-section { border-block-start: var(--fq-rule); }
+
+/* ===========================================================================
+   3. Text atoms (reference 9.2.2)
+   =========================================================================== */
+
+/* The panel legend. This is the voice of the whole design: a tiny, tracked,
+   uppercase mono label that reads like a legend silk-screened on hardware. */
+.fq-label {
+  margin: 0 0 var(--fq-space-4);
+  color: var(--fq-text-dim);
+  text-transform: uppercase;
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-legend);
+  font-weight: var(--fq-weight-regular);
+  line-height: var(--fq-leading-solid);
+}
+.fq-label--accent { color: var(--fq-text-accent); }
+
+/* The index numeral. Padded to two digits in the markup, tabular here. */
+.fq-index {
+  color: var(--fq-text-decorative);
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-legend);
+  font-weight: var(--fq-weight-light);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--fq-leading-solid);
+}
+.fq-index--live { color: var(--fq-text-accent); }
+
+.fq-h1 {
+  margin: 0 0 var(--fq-space-5);
+  color: var(--fq-text-strong);
+  text-transform: uppercase;
+  font-family: var(--fq-font-display);
+  font-size: var(--fq-size-h1);
+  font-weight: 400;
+  line-height: var(--fq-leading-hero);
+  letter-spacing: var(--fq-track-display);
+}
+
+.fq-h2 {
+  margin: 0 0 var(--fq-space-5);
+  color: var(--fq-text);
+  text-transform: uppercase;
+  font-family: var(--fq-font-display);
+  font-size: var(--fq-size-h2);
+  font-weight: 400;
+  line-height: var(--fq-leading-tight);
+  letter-spacing: var(--fq-track-display);
+}
+
+.fq-h3 {
+  margin: 0 0 var(--fq-space-3);
+  color: var(--fq-text);
+  text-transform: uppercase;
+  font-family: var(--fq-font-display);
+  font-size: var(--fq-size-sub);
+  font-weight: 400;
+  line-height: var(--fq-leading-tight);
+  letter-spacing: var(--fq-track-display);
+}
+
+/* Verbatim case. The design language uppercases headings, but CONTENT.md
+   flags the lowercase "boeken?" and "licht" headings as deliberately
+   preserved. Uppercasing them would destroy exactly what was preserved, so
+   those two opt out of the transform. The brief outranks the design language
+   on anything CONTENT.md has called final. */
+.fq-h1--verbatim,
+.fq-h2--verbatim,
+.fq-h3--verbatim { text-transform: none; }
+
+.fq-prose {
+  margin: 0 0 var(--fq-space-4);
+  max-inline-size: 62ch;
+  color: var(--fq-text-dim);
+  font-size: var(--fq-size-body);
+  font-weight: var(--fq-weight-light);
+  line-height: var(--fq-leading-prose);
+}
+.fq-prose:last-child { margin-block-end: 0; }
+.fq-prose--strong { color: var(--fq-text); }
+
+/* The quoted field: the client's voice, emoji and all, held inside a machine
+   frame. The tension between the two is the point (brief section 2). */
+.fq-quote {
+  margin: 0 0 var(--fq-space-4);
+  border-inline-start: var(--fq-rule);
+  padding-inline-start: var(--fq-rule-inset);
+  max-inline-size: 62ch;
+  color: var(--fq-text);
+  font-size: var(--fq-size-body);
+  font-weight: var(--fq-weight-light);
+  line-height: var(--fq-leading-prose);
+}
+.fq-quote p { margin: 0 0 var(--fq-space-2); }
+.fq-quote p:last-child { margin-block-end: 0; }
+
+/* The italic caption line under a gig. */
+.fq-caption {
+  margin: var(--fq-space-4) 0 0;
+  color: var(--fq-text-decorative);
+  font-size: var(--fq-size-legend);
+  font-style: italic;
+  line-height: var(--fq-leading-tight);
+}
+
+.fq-link {
+  color: var(--fq-text-dim);
+  text-decoration: none;
+  border-block-end: 1px solid var(--fq-hairline);
+  transition: color var(--fq-dur-snap) ease, border-color var(--fq-dur-snap) ease;
+}
+.fq-link:hover { color: var(--fq-accent); border-block-end-color: var(--fq-accent); }
+
+/* ===========================================================================
+   4. Hairlines (reference 32.2.5)
+   The left rule is the house method for turning a paragraph into a data field.
+   =========================================================================== */
+
+.fq-rule-left {
+  border-inline-start: var(--fq-rule);
+  padding-inline-start: var(--fq-rule-inset);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fq-space-1);
+}
+
+hr.fq-divider {
+  border: 0;
+  border-block-start: var(--fq-rule);
+  margin-block: var(--fq-space-8);
+}
+hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
+
+/* ===========================================================================
+   5. The corner-bracketed button (reference 32.2.4)
+   Eight single-colour gradients on ONE pseudo element. No background, no
+   border, no radius, and crucially no four <img> per button: the reference's
+   original ships 188 corner-mark images on one page.
+   =========================================================================== */
+
+.fq-bracket { position: relative; }
+.fq-bracket::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--fq-bracket-color) 0 0), linear-gradient(var(--fq-bracket-color) 0 0),
+    linear-gradient(var(--fq-bracket-color) 0 0), linear-gradient(var(--fq-bracket-color) 0 0),
+    linear-gradient(var(--fq-bracket-color) 0 0), linear-gradient(var(--fq-bracket-color) 0 0),
+    linear-gradient(var(--fq-bracket-color) 0 0), linear-gradient(var(--fq-bracket-color) 0 0);
+  background-repeat: no-repeat;
+  background-size:
+    var(--fq-bracket-size) var(--fq-bracket-weight),
+    var(--fq-bracket-weight) var(--fq-bracket-size),
+    var(--fq-bracket-size) var(--fq-bracket-weight),
+    var(--fq-bracket-weight) var(--fq-bracket-size),
+    var(--fq-bracket-size) var(--fq-bracket-weight),
+    var(--fq-bracket-weight) var(--fq-bracket-size),
+    var(--fq-bracket-size) var(--fq-bracket-weight),
+    var(--fq-bracket-weight) var(--fq-bracket-size);
+  background-position:
+    left top,     left top,
+    right top,    right top,
+    left bottom,  left bottom,
+    right bottom, right bottom;
+  transition: background-image var(--fq-dur-snap) ease;
+}
+
+.fq-button {
+  --fq-bracket-color: var(--fq-text-dim);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fq-space-2);
+  min-inline-size: var(--fq-button-width, 160px);
+  min-block-size: 50px;
+  padding: var(--fq-space-4) var(--fq-space-5);
+  border: 0;
+  background: transparent;
+  color: var(--fq-text-dim);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: var(--fq-font-display);
+  font-size: var(--fq-size-data);
+  font-weight: 400;
+  line-height: var(--fq-leading-solid);
+  letter-spacing: var(--fq-track-display);
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-button:hover,
+.fq-button:focus-visible {
+  color: var(--fq-accent);
+  --fq-bracket-color: var(--fq-accent);
+}
+.fq-button--block { --fq-button-width: 100%; inline-size: 100%; }
+
+/* ===========================================================================
+   6. The datasheet row (reference 32.2.3)
+   The one component that DOES have a gutter.
+   =========================================================================== */
+
+.fq-datasheet { display: flex; flex-direction: column; }
+
+.fq-datasheet__row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--fq-space-5);
+  align-items: baseline;
+  padding-block: var(--fq-space-3);
+  border-block-start: var(--fq-rule);
+}
+.fq-datasheet__row:last-child { border-block-end: var(--fq-rule); }
+
+.fq-datasheet__cell {
+  min-inline-size: 0;
+  grid-column: span var(--col-span, 2);
+}
+
+.fq-datasheet__key {
+  margin: 0;
+  color: var(--fq-text-dim);
+  text-transform: uppercase;
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-legend);
+  font-weight: var(--fq-weight-regular);
+  line-height: var(--fq-leading-tight);
+}
+
+.fq-datasheet__value {
+  margin: 0;
+  color: var(--fq-text);
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-data);
+  font-weight: var(--fq-weight-light);
+  line-height: var(--fq-leading-tight);
+}
+.fq-datasheet__value--end { text-align: end; }
+.fq-datasheet__value--index {
+  color: var(--fq-text-decorative);
+  font-variant-numeric: tabular-nums;
+}
+
+@media screen and (max-width: 767px) {
+  .fq-datasheet__row { gap: var(--fq-space-4); }
+  .fq-datasheet__cell[data-priority="3"] { display: none; }
+  .fq-datasheet__cell[data-priority="1"] { grid-column: span 5; }
+  .fq-datasheet__cell[data-priority="2"] { grid-column: span 3; }
+  .fq-datasheet__cell[data-priority="2"] .fq-datasheet__value { text-align: end; }
+}
+
+/* ===========================================================================
+   7. The top bar
+   =========================================================================== */
+
+.fq-topbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--fq-z-nav);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fq-space-5);
+  padding: var(--fq-space-4) var(--fq-gutter);
+  background: color-mix(in srgb, var(--fq-page) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-block-end: var(--fq-rule);
+}
+
+.fq-topbar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--fq-space-3);
+  text-decoration: none;
+  color: var(--fq-text);
+}
+.fq-topbar__logo { display: block; inline-size: 32px; block-size: 32px; }
+.fq-topbar__wordmark {
+  text-transform: uppercase;
+  font-family: var(--fq-font-display);
+  font-size: var(--fq-size-data);
+  letter-spacing: var(--fq-track-display);
+}
+/* Where a normal brand would put a tagline, put a part number. (brief 2.1) */
+.fq-topbar__partno {
+  color: var(--fq-text-decorative);
+  font-size: var(--fq-size-legend);
+  font-variant-numeric: tabular-nums;
+}
+@media screen and (max-width: 479px) { .fq-topbar__partno { display: none; } }
+
+/* The desktop inline nav. Below 767px the dialog menu is the only nav. */
+.fq-topnav { display: flex; align-items: center; gap: var(--fq-space-5); }
+.fq-topnav__link {
+  color: var(--fq-text-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: var(--fq-size-legend);
+  line-height: var(--fq-leading-solid);
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-topnav__link:hover { color: var(--fq-text); }
+.fq-topnav__link[aria-current="page"] { color: var(--fq-accent); }
+@media screen and (max-width: 991px) { .fq-topnav { display: none; } }
+
+/* The menu trigger: two bars, no hamburger cliche beyond that. */
+.fq-menu-trigger {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0 var(--fq-space-2);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.fq-menu-trigger__bar {
+  display: block;
+  inline-size: 100%;
+  block-size: var(--fq-rule-width);
+  background: var(--fq-text);
+  transition: background-color var(--fq-dur-snap) ease;
+}
+.fq-menu-trigger:hover .fq-menu-trigger__bar { background: var(--fq-accent); }
+
+/* ===========================================================================
+   8. The numbered menu (reference 32.2.6)
+   A <dialog> opened with showModal(), so focus trapping, page inertness and
+   Escape-to-close come from the browser.
+   =========================================================================== */
+
+.fq-menu {
+  position: fixed;
+  inset: 0;
+  z-index: var(--fq-z-menu);
+  inline-size: 100%;
+  max-inline-size: 100%;
+  block-size: 100%;
+  max-block-size: 100%;
+  margin: 0;
+  padding: var(--fq-space-20) var(--fq-gutter) var(--fq-space-10);
+  border: 0;
+  background: var(--fq-surface);
+  color: var(--fq-text);
+  overflow-y: auto;
+}
+.fq-menu::backdrop { background: color-mix(in srgb, var(--fq-page) 92%, transparent); }
+
+.fq-menu__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fq-space-5);
+  margin-block-end: var(--fq-space-10);
+}
+
+.fq-menu__close {
+  inline-size: 44px;
+  block-size: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--fq-text-dim);
+  cursor: pointer;
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-util);
+  line-height: 1;
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-menu__close:hover { color: var(--fq-accent); }
+
+.fq-menu__list { list-style: none; margin: 0; padding: 0; }
+
+.fq-menu__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fq-space-5);
+  padding-block: var(--fq-space-3);
+  border-block-start: var(--fq-rule);
+  text-decoration: none;
+  color: inherit;
+}
+.fq-menu__list li:last-child .fq-menu__row { border-block-end: var(--fq-rule); }
+
+.fq-menu__mask { overflow: hidden; display: block; }
+
+.fq-menu__label {
+  display: block;
+  color: var(--fq-text-dim);
+  text-transform: uppercase;
+  font-family: var(--fq-font-display);
+  font-size: clamp(1.5rem, 1rem + 2.1vw, 2.75rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: var(--fq-track-display);
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-menu__index {
+  display: block;
+  text-align: end;
+  color: var(--fq-text-decorative);
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-data);
+  font-weight: var(--fq-weight-light);
+  line-height: var(--fq-leading-solid);
+  font-variant-numeric: tabular-nums;
+}
+.fq-menu__row:hover .fq-menu__label,
+.fq-menu__row:focus-visible .fq-menu__label { color: var(--fq-text-strong); }
+.fq-menu__row[aria-current="page"] .fq-menu__label { color: var(--fq-accent); }
+.fq-menu__row[aria-current="page"] .fq-menu__index { color: var(--fq-accent); }
+
+/* The mask reveal. Two tracks, offset by half a step, staggered per row. */
+@media (prefers-reduced-motion: no-preference) {
+  .fq-menu__label,
+  .fq-menu__index {
+    transform: translateY(110%);
+    transition: transform var(--fq-dur-reveal) var(--fq-ease-machine),
+                color var(--fq-dur-snap) ease;
+    transition-delay: calc(var(--row, 0) * var(--fq-stagger));
+  }
+  .fq-menu__index {
+    transition-delay: calc(var(--row, 0) * var(--fq-stagger) + (var(--fq-stagger) / 2));
+  }
+  .fq-menu.is-open .fq-menu__label,
+  .fq-menu.is-open .fq-menu__index { transform: translateY(0); }
+}
+
+.fq-menu__foot {
+  margin-block-start: var(--fq-space-10);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fq-space-5);
+}
+
+/* ===========================================================================
+   9. The event tile (reference 32.2.7)
+   Square media with object-fit: cover. The photos are not square; the crop is
+   the point (brief section 6).
+   =========================================================================== */
+
+.fq-event { display: flex; flex-direction: column; }
+
+.fq-event__media {
+  position: relative;
+  overflow: hidden;
+  margin-block-end: var(--fq-space-5);
+  background: var(--fq-surface-inset);
+}
+.fq-event__img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+/* The index tag sits on the image, bracketed on three sides like the
+   reference's partner tag. */
+.fq-event__tag {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  margin: 0;
+  padding: 0.6rem 0.5rem 0.5rem;
+  background: color-mix(in srgb, var(--fq-page) 80%, transparent);
+  border-block-end: 1px solid var(--fq-bashed-white);
+  border-inline-end: 1px solid var(--fq-bashed-white);
+  color: var(--fq-bashed-white);
+  text-transform: uppercase;
+  font-size: var(--fq-size-legend);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--fq-leading-solid);
+  letter-spacing: var(--fq-track-display);
+}
+
+.fq-event__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--fq-space-5);
+  margin-block-end: var(--fq-space-4);
+}
+.fq-event__title {
+  margin: 0;
+  color: var(--fq-text);
+  text-transform: uppercase;
+  font-family: var(--fq-font-display);
+  font-size: var(--fq-size-sub);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: var(--fq-track-display);
+}
+/* The 6x12 solid block before a numeral: the cheapest terminal-cursor glyph
+   in the system, and the tile's only non-bracket ornament. */
+.fq-cursor {
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 12px;
+  background: var(--fq-accent);
+  flex: 0 0 auto;
+}
+
+/* ===========================================================================
+   10. The footer
+   =========================================================================== */
+
+.fq-footer {
+  border-block-start: var(--fq-rule);
+  padding: var(--fq-space-15) var(--fq-gutter) var(--fq-space-10);
+}
+.fq-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--fq-space-8);
+}
+.fq-footer__tagline {
+  margin: 0;
+  color: var(--fq-text-decorative);
+  text-transform: uppercase;
+  font-family: var(--fq-font-display);
+  font-size: clamp(1.75rem, 1rem + 3.2vw, 3.5rem);
+  line-height: var(--fq-leading-solid);
+  letter-spacing: var(--fq-track-display);
+}
+.fq-footer__links { display: flex; flex-wrap: wrap; gap: var(--fq-space-5); }
+.fq-footer__link {
+  color: var(--fq-text-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: var(--fq-size-legend);
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-footer__link:hover { color: var(--fq-accent); }
+.fq-footer__legal {
+  margin: var(--fq-space-10) 0 0;
+  color: var(--fq-text-decorative);
+  font-size: var(--fq-size-legend);
+  line-height: var(--fq-leading-tight);
+}
+
+/* ===========================================================================
+   11. The grain host (reference 11.4)
+   grain.js mounts the layer inside this. The host never moves and never
+   repaints; it is the clipping viewport.
+   =========================================================================== */
+
+.fq-grain-host {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: var(--fq-z-grain);
+}
+@media screen and (max-width: 479px) { .fq-grain-host { opacity: 0.35; } }
