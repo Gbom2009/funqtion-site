@@ -233,3 +233,61 @@ token**, not on a principle the document contradicts.
 - **The text-glitch family and the self-alphabet scramble.** Sub-200ms loops that replace
   readable text with noise.
 - **Marquees as motion** (10.6) — assessed under components instead.
+
+---
+
+## System 4: texture and degradation (chapter 11)
+
+Most of this chapter's grain work landed in system 3, because the same two defects were the
+motion chapter's top findings: the tile cycle, the drift rate, the opacity calibration and
+the mobile opacity override are all recorded there (3.1–3.5).
+
+| # | Change | Source | Decision |
+|---|---|---|---|
+| 4.1 | Gig separator from solid to dashed | 11.3.4 | **keep** |
+| 4.2 | Delete the `@media (max-width: 479px) { .fq-grain-host { opacity: 0.35 } }` override | 11.1.5, 11.1.8 | **keep** |
+| 4.3 | Hover pixelation on the four gig photos | 11.3.1 (requested by the refine brief) | **REVERT** |
+| 4.4 | WebGL RGB-shift glitch on the gig photos | 11.5 | **not built** |
+
+### Notes
+
+**4.1.** In this system a dashed rule means "this row continues off-screen". The gig log is a
+running record rather than four closed cards, so the separator between articles is now
+dashed. One property.
+
+**4.2.** The reference drops grain opacity to 0.2 on small screens to hide DPR haze, which it
+gets because it authors the tile in CSS pixels and a 3× phone resamples a crisp 1px line
+across three device pixels. `grain.js` bakes at `devicePixelRatio` instead, so the haze never
+occurs and the workaround was inherited for a problem the site does not have.
+
+**4.3 — REVERTED, after building it and testing two settings.** Implemented as a 48px-wide
+canvas drawn with `imageSmoothingEnabled = false` and scaled back up by CSS, shown on
+`pointerenter` and on `focusin` for keyboard parity. It worked. It is still wrong here:
+
+- At **48 blocks** it is strong and genuinely on-language, and it renders the photo
+  unreadable. These four photos are the duo's proof of work and the single reason a booker
+  is on the page. Rewarding a hover, which is an expression of interest in the photo, by
+  destroying the photo is backwards.
+- At **150 blocks** it is imperceptible. There is no useful middle at the size these images
+  render, so the effect is either hostile or absent.
+- It is hover-only, so the phone audience this site is mostly for never sees it.
+
+Reverted in full: script, CSS and the `<script>` tag.
+
+**4.4 — not built, and the reason is not taste.** I tested whether it *can* run in the
+delivery environment the brief specifies. From `file://`, `texImage2D` with a local `<img>`
+throws **`SecurityError: the image element contains cross-origin data`**. The image taints
+the context, so a WebGL effect textured from these photos cannot run at all when the site is
+opened by double-clicking, which is a stated requirement. (A 2D canvas is subject to the same
+taint, but only for *reads*: `drawImage` succeeds and `getImageData`/`toDataURL` throw, which
+is why 4.3 was buildable at all.) Even setting the environment aside, ~4KB of raw WebGL to
+degrade four photographs on a page whose job is to show them clearly is not a trade worth
+making.
+
+### Discrepancy found
+
+**There is no pixelation in the reference to port.** The refine brief asks for hover
+pixelation "(11.3)" as though it were an extraction. Section 11.3.1 states that
+`.pixel-image` appears 82 times across the 16 mirrored documents and carries **zero CSS
+rules** — the class is inert markup. So 4.3 was an original effect built to the brief's
+request in the reference's register, not a port, and it is logged that way.

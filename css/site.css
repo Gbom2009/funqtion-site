@@ -161,7 +161,9 @@
    =========================================================================== */
 
 .fq-gig { display: grid; gap: var(--fq-space-8); align-items: start; }
-.fq-gig + .fq-gig { margin-block-start: var(--fq-space-20); padding-block-start: var(--fq-space-20); border-block-start: var(--fq-rule); }
+/* Dashed, not solid. In this system a dashed rule means "this continues":
+   the gig log is a running record, not four closed cards. (reference 11.3.4) */
+.fq-gig + .fq-gig { margin-block-start: var(--fq-space-20); padding-block-start: var(--fq-space-20); border-block-start: var(--fq-rule-dashed); }
 
 /* Same reasoning as the member block: side by side from tablet up, stacked
    below it, so the square crop never dominates the viewport. */
