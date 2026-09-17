@@ -291,3 +291,74 @@ pixelation "(11.3)" as though it were an extraction. Section 11.3.1 states that
 `.pixel-image` appears 82 times across the 16 mirrored documents and carries **zero CSS
 rules** — the class is inert markup. So 4.3 was an original effect built to the brief's
 request in the reference's register, not a port, and it is logged that way.
+
+---
+
+## System 5: components (chapter 9)
+
+| # | Change | Source | Decision |
+|---|---|---|---|
+| 5.1 | `.fq-cursor` from accent to `--fq-text`; one `--live` accent variant, used once | 9.5 | **keep** |
+| 5.2 | Delete `.fq-event { display: flex }` | 9.5 | **keep** |
+| 5.3 | Delete `.fq-event__head` and unwrap it in the markup | 9.5 | **keep** |
+| 5.4 | Delete `.fq-event__media { margin-block-end }` | 9.5 | **keep** |
+| 5.5 | Delete the `[data-priority="3"]` breakpoint rule | 9.8 | **keep** |
+| 5.6 | Hero meta and the `over.html` member specs become real `<dl>`s | 9.5, 9.12 | **keep** |
+| 5.7 | `aria-hidden` on the decorative 01–04 numerals in `bieden.html` | 9.8 | **keep** |
+| 5.8 | CSS-only marquee on the footer wordmark | 9.10, 10.6 | **REVERT** |
+
+### Notes
+
+Every deletion here was verified as dead before removal, not assumed:
+
+- `.fq-cursor` — counted: **9 instances on tip.html**, 1 on index. Nine orange blocks down a
+  track list was the largest remaining accent overshoot on the site. The reference's
+  equivalent, its date square, is off-white for exactly this reason. Now off-white, with a
+  single `--live` accent mark on the home descriptor.
+- `.fq-event__head` — parsed all four instances on feesten.html: every one contains exactly
+  one child, an `<h3>`. It is a `justify-content: space-between` flexbox with nothing to
+  space, inherited from a reference tile that had a date on the right. Funqtion's gigs have
+  no dates.
+- `.fq-event` — never appears standalone in the markup, only as `class="fq-gig fq-event"`,
+  and `.fq-gig` sets `display: grid` from a later stylesheet. The flex declaration never
+  applied.
+- `[data-priority="3"]` — grepped: the site uses priorities **1 and 2 only**, eight of each.
+  The rule matched nothing.
+- `.fq-event__media { margin-block-end }` — `.fq-gig` is a grid with its own `gap`, so the
+  margin was invisible at desktop and double-counted at mobile (2rem gap + 1.25rem margin).
+  Removing it took 80px off feesten.html's rendered height.
+
+**5.6 and 5.7 — semantics the reference never had.** The brief asks for "metadata hanging off
+a left hairline as a `<dl>`". The visual construction was already right from pass one; the
+markup was spans. The hero meta and the Rol/Stijl specs are now real `<dl>`/`<dt>`/`<dd>`, so
+a screen reader announces "Rol: creatieve kracht" as a pair. The 01–04 numerals on bieden are
+the opposite case: they are a visual register, not information, so announcing "Speakers 01"
+is noise. They are now `aria-hidden`. All six pages re-validated for tag structure afterwards.
+
+**5.8 — REVERTED, after building it and looking at it.** A seamless two-copy CSS marquee, no
+JS, pausing on hover and absent under reduced motion. Two reasons it is wrong here, one
+aesthetic and one that is a genuine defect in my own implementation:
+
+1. **It truncates the brand.** The screenshot shows the footer reading `EL THE MUSIQ    FEEL
+   THE MUSIQ`. For most of the 24-second loop the site's own tagline is cut off mid-word. A
+   static wordmark is the footer's sign-off; a moving one is a ticker, and this phrase is too
+   important to present half-legible.
+2. **The pause mechanism does not work.** WCAG 2.2.2 requires a way to pause movement lasting
+   over five seconds. I wrote `:hover` and `:focus-within` pauses — but the track contains
+   only `<p>` elements, so nothing inside it can ever receive focus and `:focus-within` can
+   never match. That leaves hover as the sole mechanism, which does not exist on touch, where
+   most of this audience is. The compliance was illusory.
+
+In the reference the marquee is a band of repeating text used as page texture. Here it would
+be the single most important phrase on the site, moving. Removed entirely.
+
+### Rejected from the mining
+
+- **The two-line title reservation** (`min-block-size: 2lh`). Its stated purpose is to keep
+  detail stacks sharing a baseline **across a row of tiles**. feesten.html renders gigs as
+  stacked two-column blocks, never a row, so there is no baseline to share.
+- **`-webkit-line-clamp` and the truncate utilities.** Defences against unbounded CMS strings.
+  Four gig titles, hand-written, fixed.
+- **The image-card hover reveal, the filter chip, the search field, the results counter and
+  the drag carousel.** All scale artefacts: they exist for 43 tiles, 100 archive items and 57
+  track rows.

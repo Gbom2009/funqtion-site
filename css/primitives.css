@@ -294,6 +294,7 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
    =========================================================================== */
 
 .fq-datasheet { display: flex; flex-direction: column; }
+.fq-datasheet dd, .fq-hero__meta dd { margin: 0; }
 
 .fq-datasheet__row {
   display: grid;
@@ -335,7 +336,6 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 
 @media screen and (max-width: 767px) {
   .fq-datasheet__row { gap: var(--fq-space-4); }
-  .fq-datasheet__cell[data-priority="3"] { display: none; }
   .fq-datasheet__cell[data-priority="1"] { grid-column: span 5; }
   .fq-datasheet__cell[data-priority="2"] { grid-column: span 3; }
   .fq-datasheet__cell[data-priority="2"] .fq-datasheet__value { text-align: end; }
@@ -565,12 +565,9 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
    the point (brief section 6).
    =========================================================================== */
 
-.fq-event { display: flex; flex-direction: column; }
-
 .fq-event__media {
   position: relative;
   overflow: hidden;
-  margin-block-end: var(--fq-space-5);
   background: var(--fq-surface-inset);
 }
 .fq-event__img {
@@ -597,13 +594,6 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   line-height: var(--fq-leading-solid);
 }
 
-.fq-event__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--fq-space-5);
-  margin-block-end: var(--fq-space-4);
-}
 .fq-event__title {
   margin: 0;
   color: var(--fq-text);
@@ -620,9 +610,12 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   display: inline-block;
   inline-size: 6px;
   block-size: 12px;
-  background: var(--fq-accent);
+  background: var(--fq-text);
   flex: 0 0 auto;
 }
+/* One "live" mark per site, on the home descriptor. The reference's own date
+   square is off-white; nine accent blocks down a track list is overshoot. */
+.fq-cursor--live { background: var(--fq-accent); }
 
 /* ===========================================================================
    10. The footer (reference 8.5)
