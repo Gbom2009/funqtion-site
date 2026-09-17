@@ -1,0 +1,232 @@
+/* ---------------------------------------------------------------------------
+   tokens.css  -  Team Funqtion design tokens
+   Adapted from TELETECH-EVENTS-DESIGN-REFERENCE.md chapter 32.1.2.
+   Nothing else in the system reads a literal value.
+   Naming: --fq-<layer>-<role>.
+
+   Four documented deviations from the reference (BUILD-BRIEF section 3):
+     1. The accent is orange #f68712, not blood red #c13243. Because the orange
+        clears AA on every surface here (8.2:1 on the page colour, measured),
+        the reference's two-token --digital-blood / --digital-blood-text
+        workaround is dropped: one accent token does every job.
+     2. Fonts are Google Fonts substitutes: JetBrains Mono for ProtoMono,
+        Archivo Black for LomoCopy LT Std.
+     3. No video anywhere.
+     4. Every accessibility fix in chapter 31 is taken, not optional.
+   --------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: dark;
+
+  /* === 1. Raw grey ramp (reference chapter 5), darkest to lightest ======== */
+  --fq-black:         #000000;
+  --fq-page:          #040404;  /* the true page colour */
+  --fq-darkest-hour:  #0a0a0a;
+  --fq-midnight:      #0d0d0d;
+  --fq-dusk:          #141414;
+  --fq-haze-grey:     #1e1e1e;
+  --fq-hairline:      #363636;  /* the rule colour */
+  --fq-machine-grey:  #6c6c6c;  /* 3.90:1 - rules and decoration ONLY, never text */
+  --fq-quiet-grey:    #7a7a7a;  /* 4.78:1 on #040404, 4.61:1 on #0a0a0a - AA at body size */
+  --fq-flat-grey:     #8d8d8d;  /* 6.18:1 - the AA-safe dim text colour */
+  --fq-off-white:     #d9d9d9;  /* 14.52:1 */
+  --fq-bashed-white:  #e4e4e4;  /* 16.11:1 */
+  --fq-power-white:   #f0f0f0;  /* 17.98:1 */
+
+  /* === 2. Accent (deviation 3.1) ==========================================
+     #f68712 measures 8.2:1 on #040404 and 7.9:1 on #0a0a0a, so unlike the
+     reference's red it is safe for text at any size. --fq-accent-dim is for
+     large fills where full orange is too loud; it is NOT a text colour. */
+  --fq-accent:        #f68712;
+
+  /* === 3. Semantic surfaces. Components reference these, never the ramp. == */
+  --fq-surface:         var(--fq-page);
+  --fq-surface-inset:   var(--fq-dusk);
+
+  /* === 4. Semantic text =================================================== */
+  --fq-text-strong:     var(--fq-power-white);
+  --fq-text:            var(--fq-off-white);
+  --fq-text-dim:        var(--fq-flat-grey);    /* AA-safe metadata */
+  --fq-text-quiet:      var(--fq-quiet-grey);   /* 4.78:1 - the dimmest legal TEXT colour */
+  --fq-text-decorative: var(--fq-machine-grey); /* 3.90:1 - rules, arrows, large display only.
+                                                   Fails AA at body size: never use for small text. */
+  --fq-text-accent:     var(--fq-accent);
+
+  /* === 5. Rules, brackets, focus ========================================== */
+  --fq-rule-color:    var(--fq-hairline);
+  --fq-rule-width:    1px;
+  --fq-rule:          var(--fq-rule-width) solid var(--fq-rule-color);
+  --fq-rule-dashed:   var(--fq-rule-width) dashed var(--fq-rule-color);
+  --fq-rule-inset:    0.75rem;
+
+  --fq-bracket-size:   14px;
+  --fq-bracket-weight: 1px;
+  --fq-bracket-color:  currentColor;
+
+  /* The focus ring is accent-coloured, per brief 3.1. It is never removed. */
+  --fq-focus-color:  var(--fq-accent);
+  --fq-focus-width:  2px;
+  --fq-focus-offset: 2px;
+
+  /* === 6. Type (deviation 3.2) ============================================ */
+  --fq-font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', 'Roboto Mono', monospace;
+  --fq-font-display: 'Archivo Black', 'Arial Black', system-ui, sans-serif;
+
+  --fq-weight-light:   300;
+  --fq-weight-regular: 400;
+
+  /* Static scale. The reference's ladder is 9/11/13/15/17/21/24/27/40 with
+     11px carrying body copy. 11px is kept for the machine-readout register
+     (labels, indices, tags) but real Dutch prose is set at 15px: see the
+     note in the build summary. This is the one type deviation. */
+  --fq-size-legend: 11px;  /* labels, indices, tags, captions */
+  --fq-size-data:   13px;  /* datasheet rows, buttons, nav */
+  --fq-size-body:   15px;  /* prose paragraphs */
+  --fq-size-sub:    21px;
+  --fq-size-util:   24px;
+
+  /* Fluid display sizes, derived the way reference 32.1.3 derives them:
+     clamp(min, intercept + slope*vw, max) passing through both endpoints,
+     so there is no jump at any breakpoint.
+       h1   : 28px at 390 -> 64px at 1600   slope 2.975vw, intercept 0.975rem
+       hero : 34px at 390 -> 96px at 1600   slope 5.124vw, intercept 0.875rem */
+  --fq-size-h1:   clamp(1.75rem, 0.975rem + 2.975vw, 4rem);
+  --fq-size-hero: clamp(2.125rem, 0.875rem + 5.124vw, 6rem);
+  --fq-size-h2:   clamp(1.3125rem, 1.076rem + 0.909vw, 2rem);
+
+  /* Leading */
+  --fq-leading-solid: 1;
+  --fq-leading-tight: 1.25;
+  --fq-leading-prose: 1.6;
+  --fq-leading-hero:  0.92;
+
+  /* Tracking. Display face tracked in 3%, mono left alone, and exactly one
+     positive-tracking use reserved for the hardware label on bieden.html. */
+  --fq-track-display: -0.03em;
+  --fq-track-open:     0.03em;
+
+  /* === 7. Spacing. Base 0.25rem, 1.25rem is the module. =================== */
+  --fq-space-1:  0.25rem;
+  --fq-space-2:  0.5rem;
+  --fq-space-3:  0.75rem;
+  --fq-space-4:  1rem;
+  --fq-space-5:  1.25rem;
+  --fq-space-8:  2rem;
+  --fq-space-10: 2.5rem;
+  --fq-space-15: 3.75rem;
+  --fq-space-20: 5rem;
+  --fq-space-25: 6.25rem;
+
+  /* One gutter, changing exactly once, at 767px. */
+  --fq-gutter: var(--fq-space-5);
+
+  /* === 8. Motion ==========================================================
+     The reference's single CustomEase is one cubic and needs no library. */
+  --fq-ease-machine: cubic-bezier(0.14, 0.86, 0.37, 0.96);
+  --fq-dur-snap:     0.2s;
+  --fq-dur-reveal:   0.25s;
+  --fq-stagger:      0.05s;
+
+  /* === 9. Layers ========================================================== */
+  --fq-z-nav:    90;
+  --fq-z-menu:   95;
+  --fq-z-grain:  100;
+}
+
+/* Breakpoints, as documentation. Custom properties cannot be used inside a
+   media query, so these four numbers are copied by hand where needed:
+     991px (max)  tablet
+     767px (max)  mobile
+     479px (max)  phone
+     768px (min)  desktop                                                    */
+
+@media screen and (max-width: 767px) {
+  :root { --fq-gutter: var(--fq-space-4); }
+}
+
+/* --- Reset ---------------------------------------------------------------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--fq-surface);
+  color: var(--fq-text);
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-body);
+  font-weight: var(--fq-weight-light);
+  line-height: var(--fq-leading-prose);
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; }
+
+/* One real focus ring, applied once, never removed anywhere.
+   The reference's original ships 66 focusable elements with outline:none. */
+:where(a, button, input, select, textarea, summary, iframe, [tabindex]):focus-visible {
+  outline: var(--fq-focus-width) solid var(--fq-focus-color);
+  outline-offset: var(--fq-focus-offset);
+}
+
+/* Selection is a luminance move, not an accent one. A solid #f68712 block
+   dragged across a paragraph was the largest orange area the site could
+   produce, and the reader triggers it. */
+::selection {
+  background-color: var(--fq-off-white);
+  color: var(--fq-page);
+}
+img::selection { background-color: transparent; }
+
+.fq-visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip-path: inset(50%); overflow: hidden; white-space: nowrap;
+}
+
+/* Skip link: visible the moment it takes focus. */
+.fq-skip {
+  position: absolute; inset-block-start: 0; inset-inline-start: 0;
+  z-index: 999;
+  transform: translateY(-120%);
+  padding: var(--fq-space-3) var(--fq-space-4);
+  background: var(--fq-page);
+  color: var(--fq-accent);
+  font-size: var(--fq-size-data);
+  text-decoration: none;
+}
+.fq-skip:focus { transform: translateY(0); }
+
+/* --- prefers-contrast: more ---------------------------------------------
+   The recessive grey ramp is the design. When a reader asks the OS for more
+   contrast, escalate every text rung one step brighter and make the hairlines
+   visible, without touching the layout or the accent. */
+@media (prefers-contrast: more) {
+  :root {
+    --fq-text:            var(--fq-power-white);
+    --fq-text-dim:        var(--fq-off-white);
+    --fq-text-quiet:      var(--fq-flat-grey);
+    --fq-text-decorative: var(--fq-flat-grey);
+    --fq-rule-color:      var(--fq-machine-grey);
+  }
+}
+
+/* --- Global reduced-motion contract ---------------------------------------
+   The reference honours prefers-reduced-motion nowhere (chapter 31). Here it
+   kills every CSS transition and transform reveal. It does NOT reach the
+   grain: that is a WAAPI element.animate() animation and CSS
+   animation-duration has no effect on it, so grain.js checks the query itself
+   and also listens for changes to it. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

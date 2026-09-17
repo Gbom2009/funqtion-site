@@ -1,0 +1,252 @@
+/* ---------------------------------------------------------------------------
+   site.css  -  Team Funqtion page composition
+   Everything here is built from the primitives in primitives.css and reads
+   only tokens, never a literal.
+   --------------------------------------------------------------------------- */
+
+/* ===========================================================================
+   1. Home hero
+   =========================================================================== */
+
+.fq-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-block-size: calc(100svh - 73px);   /* viewport less the sticky top bar */
+  padding-block: var(--fq-space-20) var(--fq-space-15);
+}
+
+.fq-hero__mark {
+  display: block;
+  inline-size: clamp(88px, 16vw, 168px);
+  block-size: auto;
+  margin-block-end: var(--fq-space-8);
+}
+
+.fq-hero__title {
+  margin: 0;
+  color: var(--fq-text-strong);
+  text-transform: uppercase;
+  font-family: var(--fq-font-display);
+  font-size: var(--fq-size-hero);
+  font-weight: 400;
+  line-height: var(--fq-leading-hero);
+  letter-spacing: var(--fq-track-display);
+}
+
+.fq-hero__descriptor {
+  margin: var(--fq-space-4) 0 0;
+  display: flex;
+  align-items: center;
+  gap: var(--fq-space-3);
+  color: var(--fq-text-dim);
+  text-transform: uppercase;
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-data);
+  font-weight: var(--fq-weight-regular);
+  line-height: var(--fq-leading-solid);
+}
+
+.fq-hero__meta {
+  margin-block-start: var(--fq-space-10);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fq-space-8);
+}
+
+/* ===========================================================================
+   2. The numbered index list (home)
+   Scale is proved by inventory, not claimed by adjective: the home page's
+   navigation IS the index of what the outfit is. (brief 2.7)
+   =========================================================================== */
+
+.fq-index-list { list-style: none; margin: 0; padding: 0; }
+
+.fq-index-list__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--fq-space-5);
+  padding-block: var(--fq-space-4);
+  border-block-start: var(--fq-rule);
+  text-decoration: none;
+  color: inherit;
+}
+.fq-index-list li:last-child .fq-index-list__row { border-block-end: var(--fq-rule); }
+
+.fq-index-list__num {
+  flex: 0 0 auto;
+  inline-size: 3ch;
+  color: var(--fq-text-quiet);
+  font-size: var(--fq-size-legend);
+  line-height: var(--fq-leading-solid);
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-index-list__label {
+  flex: 1 1 auto;
+  color: var(--fq-text);
+  text-transform: uppercase;
+  font-family: var(--fq-font-display);
+  font-size: clamp(1.125rem, 0.85rem + 1.15vw, 1.75rem);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: var(--fq-track-display);
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-index-list__arrow {
+  flex: 0 0 auto;
+  color: var(--fq-text-decorative);
+  font-size: var(--fq-size-data);
+  line-height: var(--fq-leading-solid);
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-index-list__row:hover .fq-index-list__label,
+.fq-index-list__row:focus-visible .fq-index-list__label { color: var(--fq-text-strong); }
+.fq-index-list__row:hover .fq-index-list__num,
+.fq-index-list__row:hover .fq-index-list__arrow { color: var(--fq-text-strong); }
+
+/* ===========================================================================
+   3. Socials
+   =========================================================================== */
+
+.fq-socials { display: flex; flex-wrap: wrap; gap: var(--fq-space-5); }
+
+.fq-social {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--fq-space-2);
+  color: var(--fq-text-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: var(--fq-size-legend);
+  line-height: var(--fq-leading-solid);
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-social:hover { color: var(--fq-text-strong); }
+.fq-social svg { inline-size: 16px; block-size: 16px; fill: currentColor; flex: 0 0 auto; }
+
+/* ===========================================================================
+   4. Member block (over.html)
+   =========================================================================== */
+
+.fq-member { display: grid; gap: var(--fq-space-8); align-items: start; }
+.fq-member + .fq-member { margin-block-start: var(--fq-space-20); }
+
+/* Two columns from tablet up. A square portrait across the full content
+   column is ~1040px tall at 1600, which turns a short bio into a scroll. */
+@media screen and (min-width: 768px) {
+  .fq-member { grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); gap: var(--fq-space-10); }
+}
+
+.fq-member__portrait {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  /* Square, matching the event-tile idiom. The sources are 1400x1297 and
+     1400x1185, so a 1:1 crop loses ~15% of the width; a 4:5 portrait crop
+     would have cut over a third. The crop is intended, the mutilation is not. */
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--fq-surface-inset);
+}
+
+.fq-member__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--fq-space-3);
+  margin-block-end: var(--fq-space-5);
+}
+
+/* ===========================================================================
+   5. Gig block (feesten.html)
+   =========================================================================== */
+
+.fq-gig { display: grid; gap: var(--fq-space-8); align-items: start; }
+/* Dashed, not solid. In this system a dashed rule means "this continues":
+   the gig log is a running record, not four closed cards. (reference 11.3.4) */
+.fq-gig + .fq-gig { margin-block-start: var(--fq-space-20); padding-block-start: var(--fq-space-20); border-block-start: var(--fq-rule-dashed); }
+
+/* Same reasoning as the member block: side by side from tablet up, stacked
+   below it, so the square crop never dominates the viewport. */
+@media screen and (min-width: 768px) {
+  .fq-gig { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--fq-space-10); }
+}
+
+/* ===========================================================================
+   6. Inventory rows (bieden.html)
+   =========================================================================== */
+
+.fq-inventory { margin-block-start: var(--fq-space-8); }
+
+
+/* ===========================================================================
+   7. Embeds (boeken.html, tip.html)
+   =========================================================================== */
+
+.fq-embed {
+  position: relative;
+  inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--fq-surface-inset);
+  border: var(--fq-rule);
+}
+.fq-embed iframe {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
+  display: block;
+}
+/* A very tall calculator inside a 16:9 box is unusable on a phone, so the
+   box gets taller as the viewport narrows. */
+@media screen and (max-width: 767px) { .fq-embed { aspect-ratio: 3 / 4; } }
+
+.fq-embed-credit {
+  margin: var(--fq-space-4) 0 0;
+  color: var(--fq-text-quiet);
+  font-size: var(--fq-size-legend);
+  line-height: var(--fq-leading-tight);
+}
+.fq-embed-credit a { color: var(--fq-text-dim); }
+
+/* The tip line: a bracketed aside, not a coloured callout box. */
+.fq-tip {
+  margin: var(--fq-space-8) 0 0;
+  padding: var(--fq-space-5);
+  color: var(--fq-text-dim);
+  font-size: var(--fq-size-data);
+  line-height: var(--fq-leading-prose);
+  --fq-bracket-color: var(--fq-hairline);
+}
+
+/* ===========================================================================
+   8. Track list (tip.html)
+   =========================================================================== */
+
+.fq-tracks { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--fq-space-8); }
+
+.fq-track { display: grid; gap: var(--fq-space-3); }
+.fq-track__head { display: flex; align-items: center; gap: var(--fq-space-3); }
+.fq-track iframe {
+  inline-size: 100%;
+  block-size: 152px;
+  border: 0;
+  display: block;
+}
+
+@media screen and (min-width: 992px) {
+  .fq-tracks { grid-template-columns: repeat(2, 1fr); gap: var(--fq-space-8) var(--fq-space-10); }
+}
+
+/* ===========================================================================
+   9. Contact row
+   =========================================================================== */
+
+.fq-contact {
+  margin-block-start: var(--fq-space-10);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fq-space-8);
+}
