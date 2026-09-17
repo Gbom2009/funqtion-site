@@ -27,6 +27,7 @@
   --fq-haze-grey:     #1e1e1e;
   --fq-hairline:      #363636;  /* the rule colour */
   --fq-machine-grey:  #6c6c6c;  /* 3.90:1 - rules and decoration ONLY, never text */
+  --fq-quiet-grey:    #7a7a7a;  /* 4.78:1 on #040404, 4.61:1 on #0a0a0a - AA at body size */
   --fq-flat-grey:     #8d8d8d;  /* 6.18:1 - the AA-safe dim text colour */
   --fq-off-white:     #d9d9d9;  /* 14.52:1 */
   --fq-bashed-white:  #e4e4e4;  /* 16.11:1 */
@@ -37,28 +38,25 @@
      reference's red it is safe for text at any size. --fq-accent-dim is for
      large fills where full orange is too loud; it is NOT a text colour. */
   --fq-accent:        #f68712;
-  --fq-accent-dim:    #b35f08;
 
   /* === 3. Semantic surfaces. Components reference these, never the ramp. == */
   --fq-surface:         var(--fq-page);
-  --fq-surface-raised:  var(--fq-darkest-hour);
   --fq-surface-inset:   var(--fq-dusk);
-  --fq-surface-overlay: var(--fq-haze-grey);
 
   /* === 4. Semantic text =================================================== */
   --fq-text-strong:     var(--fq-power-white);
   --fq-text:            var(--fq-off-white);
   --fq-text-dim:        var(--fq-flat-grey);    /* AA-safe metadata */
-  --fq-text-decorative: var(--fq-machine-grey); /* icons, rules, disabled. NOT text. */
+  --fq-text-quiet:      var(--fq-quiet-grey);   /* 4.78:1 - the dimmest legal TEXT colour */
+  --fq-text-decorative: var(--fq-machine-grey); /* 3.90:1 - rules, arrows, large display only.
+                                                   Fails AA at body size: never use for small text. */
   --fq-text-accent:     var(--fq-accent);
-  --fq-text-inverse:    var(--fq-page);
 
   /* === 5. Rules, brackets, focus ========================================== */
   --fq-rule-color:    var(--fq-hairline);
   --fq-rule-width:    1px;
   --fq-rule:          var(--fq-rule-width) solid var(--fq-rule-color);
   --fq-rule-dashed:   var(--fq-rule-width) dashed var(--fq-rule-color);
-  --fq-rule-strong:   var(--fq-rule-width) solid var(--fq-machine-grey);
   --fq-rule-inset:    0.75rem;
 
   --fq-bracket-size:   14px;
@@ -118,7 +116,6 @@
   --fq-space-15: 3.75rem;
   --fq-space-20: 5rem;
   --fq-space-25: 6.25rem;
-  --fq-space-30: 7.5rem;
 
   /* One gutter, changing exactly once, at 767px. */
   --fq-gutter: var(--fq-space-5);
@@ -131,8 +128,6 @@
   --fq-stagger:      0.05s;
 
   /* === 9. Layers ========================================================== */
-  --fq-z-base:   0;
-  --fq-z-raised: 1;
   --fq-z-nav:    90;
   --fq-z-menu:   95;
   --fq-z-grain:  100;
@@ -173,10 +168,9 @@ img { max-width: 100%; }
 
 /* One real focus ring, applied once, never removed anywhere.
    The reference's original ships 66 focusable elements with outline:none. */
-:where(a, button, input, select, textarea, summary, dialog, iframe, [tabindex]):focus-visible {
+:where(a, button, input, select, textarea, summary, iframe, [tabindex]):focus-visible {
   outline: var(--fq-focus-width) solid var(--fq-focus-color);
   outline-offset: var(--fq-focus-offset);
-  border-radius: 2px;
 }
 
 /* Selection is a luminance move, not an accent one. A solid #f68712 block
@@ -206,6 +200,20 @@ img::selection { background-color: transparent; }
   text-decoration: none;
 }
 .fq-skip:focus { transform: translateY(0); }
+
+/* --- prefers-contrast: more ---------------------------------------------
+   The recessive grey ramp is the design. When a reader asks the OS for more
+   contrast, escalate every text rung one step brighter and make the hairlines
+   visible, without touching the layout or the accent. */
+@media (prefers-contrast: more) {
+  :root {
+    --fq-text:            var(--fq-power-white);
+    --fq-text-dim:        var(--fq-off-white);
+    --fq-text-quiet:      var(--fq-flat-grey);
+    --fq-text-decorative: var(--fq-flat-grey);
+    --fq-rule-color:      var(--fq-machine-grey);
+  }
+}
 
 /* --- Global reduced-motion contract ---------------------------------------
    The reference honours prefers-reduced-motion nowhere (chapter 31). Here it

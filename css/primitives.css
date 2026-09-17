@@ -50,7 +50,6 @@
 }
 .fq-section--tight { padding-block: var(--fq-space-15); }
 .fq-section--first { padding-block-start: var(--fq-space-20); }
-.fq-section--screen { min-block-size: 100svh; display: flex; align-items: center; }
 
 @media screen and (max-width: 767px) {
   .fq-section { padding-block: var(--fq-space-15); }
@@ -78,17 +77,15 @@
   font-weight: var(--fq-weight-regular);
   line-height: var(--fq-leading-solid);
 }
-.fq-label--accent { color: var(--fq-text-accent); }
 
 /* The index numeral. Padded to two digits in the markup, tabular here. */
 .fq-index {
-  color: var(--fq-text-decorative);
+  color: var(--fq-text-quiet);
   font-family: var(--fq-font-mono);
   font-size: var(--fq-size-legend);
   font-weight: var(--fq-weight-light);
   line-height: var(--fq-leading-solid);
 }
-.fq-index--live { color: var(--fq-text-accent); }
 
 .fq-h1 {
   margin: 0 0 var(--fq-space-5);
@@ -132,7 +129,6 @@
    those two opt out of the transform. The brief outranks the design language
    on anything CONTENT.md has called final. */
 .fq-h1--verbatim,
-.fq-h2--verbatim,
 .fq-h3--verbatim { text-transform: none; }
 
 .fq-prose {
@@ -165,7 +161,7 @@
 /* The italic caption line under a gig. */
 .fq-caption {
   margin: var(--fq-space-4) 0 0;
-  color: var(--fq-text-decorative);
+  color: var(--fq-text-quiet);
   font-size: var(--fq-size-legend);
   line-height: var(--fq-leading-tight);
 }
@@ -211,12 +207,6 @@
   gap: var(--fq-space-1);
 }
 
-hr.fq-divider {
-  border: 0;
-  border-block-start: var(--fq-rule);
-  margin-block: var(--fq-space-8);
-}
-hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 
 /* ===========================================================================
    5. The corner-bracketed button (reference 32.2.4)
@@ -286,7 +276,15 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   color: var(--fq-text-strong);
   --fq-bracket-color: var(--fq-accent);
 }
-.fq-button--block { --fq-button-width: 100%; inline-size: 100%; }
+
+/* In forced-colors mode background images are dropped, so the eight-gradient
+   bracket disappears and the button becomes a bare word with no affordance.
+   Fall back to a real border, which forced-colors does honour. */
+@media (forced-colors: active) {
+  .fq-bracket::before { display: none; }
+  .fq-button { border: 1px solid ButtonBorder; color: ButtonText; }
+  .fq-button:hover, .fq-button:focus-visible { border-color: Highlight; color: Highlight; }
+}
 
 /* ===========================================================================
    6. The datasheet row (reference 32.2.3)
@@ -331,7 +329,7 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 }
 .fq-datasheet__value--end { text-align: end; }
 .fq-datasheet__value--index {
-  color: var(--fq-text-decorative);
+  color: var(--fq-text-quiet);
 }
 
 @media screen and (max-width: 767px) {
@@ -376,7 +374,7 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 }
 /* Where a normal brand would put a tagline, put a part number. (brief 2.1) */
 .fq-topbar__partno {
-  color: var(--fq-text-decorative);
+  color: var(--fq-text-quiet);
   font-size: var(--fq-size-legend);
 }
 @media screen and (max-width: 479px) { .fq-topbar__partno { display: none; } }
@@ -523,7 +521,7 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 .fq-menu__index {
   display: block;
   text-align: end;
-  color: var(--fq-text-decorative);
+  color: var(--fq-text-quiet);
   font-family: var(--fq-font-mono);
   font-size: var(--fq-size-data);
   font-weight: var(--fq-weight-light);

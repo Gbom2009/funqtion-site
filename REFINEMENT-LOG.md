@@ -362,3 +362,81 @@ be the single most important phrase on the site, moving. Removed entirely.
 - **The image-card hover reveal, the filter chip, the search field, the results counter and
   the drag carousel.** All scale artefacts: they exist for 43 tiles, 100 archive items and 57
   track rows.
+
+---
+
+## System 6: performance and accessibility (chapters 30, 31)
+
+| # | Change | Source | Decision |
+|---|---|---|---|
+| 6.1 | New `--fq-text-quiet` `#7a7a7a`; move eight small-text selectors off the 3.90:1 grey | 31.7.2 | **keep** |
+| 6.2 | Remove `dialog` from the global `:focus-visible` selector | 31.6.1 | **keep** |
+| 6.3 | Remove `border-radius: 2px` from the `:focus-visible` rule | 31.15.3 | **keep** |
+| 6.4 | `@media (forced-colors: active)` fallback: real border for the bracket button | 31.15.3 | **keep** |
+| 6.5 | `@media (prefers-contrast: more)` escalating every text rung one step | 31.15.2 | **keep** |
+| 6.6 | Delete 7 dead classes and 8 orphaned tokens | 30.15 | **keep** |
+| 6.7 | Delete `img/logo.png`, referenced by nothing | 30.14 | **keep** |
+| 6.8 | Re-encode all six photos: progressive, q78, dimensions untouched | 30.9 | **keep** |
+
+### Notes
+
+**6.1 — the most important fix in the pass, and it was my own bug.** `tokens.css` annotated
+`#6c6c6c` as "rules and decoration ONLY, never text" and then used it as `color` on ten
+selectors, eight of them real text including the **gig captions, the footer legal line and
+the Canva credit**. Measured at **3.90:1** on the page colour: a WCAG AA failure at body
+size, shipped while the file claimed otherwise.
+
+The fix is a new rung rather than a flattening, so the hierarchy survives:
+
+| Token | Value | On `#040404` | Role |
+|---|---|---:|---|
+| `--fq-text-strong` | `#f0f0f0` | 17.99:1 | headings |
+| `--fq-text` | `#d9d9d9` | 14.52:1 | body |
+| `--fq-text-dim` | `#8d8d8d` | 6.18:1 | metadata, labels |
+| `--fq-text-quiet` | `#7a7a7a` | **4.78:1** | numerals, captions, legal — **new** |
+| `--fq-text-decorative` | `#6c6c6c` | 3.90:1 | one `aria-hidden` arrow. Never text. |
+
+`#7a7a7a` also clears AA on `#0a0a0a` (4.61:1). One decorative consumer remains and it is an
+`aria-hidden` glyph.
+
+**6.2.** `.fq-menu` is a full-viewport `<dialog>`, so including `dialog` in the global focus
+selector drew a 2px accent ring around the entire screen when the menu was opened by
+keyboard. The reference's rule is "replaced, not removed"; this was one element too wide.
+
+**6.8 — 812KB saved, 39%, for free.** The photos were the site's real payload: 2,070,738
+bytes against 112KB of code. Dimensions are untouched at 1400px on the long edge, as the
+client prepared them and as 2× DPR needs for a ~700px slot. Only the encoding changed:
+progressive, 4:2:0, quality 78. Checked at render size against the original: no visible
+artefacts in the laser beams or the dark gradients, which is where this would show first.
+
+| | before | after |
+|---|---:|---:|
+| photos | 2,070,738 B | 1,258,710 B |
+| plus `logo.png` | 28,734 B | deleted |
+
+### Closing verification
+
+- **Contrast:** every text token recomputed from sRGB relative luminance. All clear AA at
+  body size. The one sub-4.5 token is confined to a single `aria-hidden` arrow.
+- **Render:** six pages × three widths. No broken images, no horizontal overflow, one `h1`
+  each, `header`/`nav`/`main`/`footer` on every page, every image with written Dutch alt.
+- **Motion:** with no preference, exactly one infinite animation at a 500ms step interval
+  plus one 420ms one-shot. Under `prefers-reduced-motion: reduce`, **zero** animations and
+  no compositor promotion. Nothing loops faster than 200ms anywhere.
+- **Keyboard:** all six pages pass end to end at 390px. First Tab reaches the skip link with
+  a visible ring; every one of the site's own focus stops has a ring (0 without); the menu
+  opens with Enter, traps focus, and closes on Escape.
+
+### Rejected from the mining
+
+- **Deduplicating the shared chrome into a JS include.** ~3.6KB per page of header, dialog
+  and footer. Turning six static pages into six pages that assemble themselves with
+  JavaScript, to save bytes on a site already 25% under budget, trades the thing that makes
+  it robust for nothing.
+- **Replacing the outline focus ring with a corner-bracket ring.** The reference needs it
+  because it has twelve rules killing `outline`. This site has none.
+- **Preloading the woff2 files.** Correct for a self-hosted origin; this site uses Google
+  Fonts, where the CSS must be fetched before the font URLs are even known.
+- **`animation-play-state: paused` on the grain under reduced motion.** Inoperative: the
+  grain is WAAPI, not CSS. Handled properly in 3.4 instead.
+- **Adding `defer` to the scripts.** Both are already the last elements before `</body>`.

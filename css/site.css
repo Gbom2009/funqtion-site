@@ -76,7 +76,7 @@
 .fq-index-list__num {
   flex: 0 0 auto;
   inline-size: 3ch;
-  color: var(--fq-text-decorative);
+  color: var(--fq-text-quiet);
   font-size: var(--fq-size-legend);
   line-height: var(--fq-leading-solid);
   transition: color var(--fq-dur-snap) ease;
@@ -204,7 +204,7 @@
 
 .fq-embed-credit {
   margin: var(--fq-space-4) 0 0;
-  color: var(--fq-text-decorative);
+  color: var(--fq-text-quiet);
   font-size: var(--fq-size-legend);
   line-height: var(--fq-leading-tight);
 }
