@@ -92,6 +92,12 @@
       urls.push(url);
     }
 
+    // A <dialog> opened with showModal() paints in the top layer, above every
+    // normal-flow element regardless of z-index, so the fixed grain host is
+    // hidden the moment the menu opens. Publishing the tile as a custom
+    // property lets the dialog paint the same texture on itself.
+    document.documentElement.style.setProperty('--fq-grain-tile', 'url(' + urls[0] + ')');
+
     var layer = document.createElement('div');
     layer.className = 'fq-grain-layer';
     // Set inline rather than in the stylesheet so the host page needs no extra

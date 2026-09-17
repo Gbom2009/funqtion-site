@@ -325,8 +325,9 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   justify-content: space-between;
   gap: var(--fq-space-5);
   padding: var(--fq-space-4) var(--fq-gutter);
-  background: color-mix(in srgb, var(--fq-page) 88%, transparent);
-  backdrop-filter: blur(6px);
+  /* Flat and opaque. An 88%-opaque bar with a backdrop-filter behind it pays
+     a per-scroll-frame GPU blur for a difference nobody can see. */
+  background: var(--fq-page);
   border-block-end: var(--fq-rule);
 }
 
@@ -363,7 +364,19 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   transition: color var(--fq-dur-snap) ease;
 }
 .fq-topnav__link:hover { color: var(--fq-text); }
-.fq-topnav__link[aria-current="page"] { color: var(--fq-accent); }
+.fq-topnav__link[aria-current="page"] { color: var(--fq-text-strong); }
+/* The current-page marker is a 4x8px border triangle, not a coloured word.
+   One piece of state, one small accent mark. (reference 8.3.3) */
+.fq-topnav__link[aria-current="page"]::before {
+  content: "";
+  display: inline-block;
+  inline-size: 0; block-size: 0;
+  border-block-start: 4px solid transparent;
+  border-block-end: 4px solid transparent;
+  border-inline-start: 4px solid var(--fq-accent);
+  margin-inline-end: 4px;
+  vertical-align: middle;
+}
 @media screen and (max-width: 991px) { .fq-topnav { display: none; } }
 
 /* The menu trigger: two bars, no hamburger cliche beyond that. */
@@ -371,7 +384,8 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   display: inline-flex;
   flex-direction: column;
   justify-content: center;
-  gap: 5px;
+  align-items: center;
+  gap: 8px;
   inline-size: 44px;
   block-size: 44px;
   padding: 0 var(--fq-space-2);
@@ -382,11 +396,16 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 .fq-menu-trigger__bar {
   display: block;
   inline-size: 100%;
+  inline-size: 25px;
   block-size: var(--fq-rule-width);
-  background: var(--fq-text);
+  background: var(--fq-text-dim);
   transition: background-color var(--fq-dur-snap) ease;
 }
-.fq-menu-trigger:hover .fq-menu-trigger__bar { background: var(--fq-accent); }
+.fq-menu-trigger:hover .fq-menu-trigger__bar { background: var(--fq-text-strong); }
+/* Exactly one navigation per viewport. The top nav hides at 991px and below,
+   so the trigger hides at 992px and up: the mirror image, no overlap.
+   Shipping both is the reference's own documented defect. */
+@media screen and (min-width: 992px) { .fq-menu-trigger { display: none; } }
 
 /* ===========================================================================
    8. The numbered menu (reference 32.2.6)
@@ -408,15 +427,28 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   background: var(--fq-surface);
   color: var(--fq-text);
   overflow-y: auto;
+  /* grain.js publishes the baked tile here so the texture survives the
+     dialog's top-layer promotion. Falls back to flat if JS is off. */
+  background-image: var(--fq-grain-tile, none);
+  background-repeat: repeat;
+  background-size: 600px 600px;
 }
-.fq-menu::backdrop { background: color-mix(in srgb, var(--fq-page) 92%, transparent); }
+
+/* Scoped to [open]. A bare display:flex here overrides the UA rule
+   dialog:not([open]) { display: none } and paints the CLOSED menu into the
+   top of every page, burying the hero. Verified by screenshot. */
+.fq-menu[open] {
+  display: flex;
+  flex-direction: column;
+}
 
 .fq-menu__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--fq-space-5);
-  margin-block-end: var(--fq-space-10);
+  margin-block-end: auto;
+  padding-block-end: var(--fq-space-10);
 }
 
 .fq-menu__close {
@@ -472,7 +504,9 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 }
 .fq-menu__row:hover .fq-menu__label,
 .fq-menu__row:focus-visible .fq-menu__label { color: var(--fq-text-strong); }
-.fq-menu__row[aria-current="page"] .fq-menu__label { color: var(--fq-accent); }
+/* One accent element per row, not two: the label goes bright, the index
+   carries the colour. */
+.fq-menu__row[aria-current="page"] .fq-menu__label { color: var(--fq-text-strong); }
 .fq-menu__row[aria-current="page"] .fq-menu__index { color: var(--fq-accent); }
 
 /* The mask reveal. Two tracks, offset by half a step, staggered per row. */
@@ -566,41 +600,57 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 }
 
 /* ===========================================================================
-   10. The footer
+   10. The footer (reference 8.5)
+   Built as a datasheet, not as a sign-off: legends in the label register,
+   values under them, the wordmark, then the legal line. Same 12-column
+   lattice as every other block on the page.
    =========================================================================== */
 
 .fq-footer {
   border-block-start: var(--fq-rule);
-  padding: var(--fq-space-15) var(--fq-gutter) var(--fq-space-10);
+  padding-block: var(--fq-space-15) var(--fq-space-10);
 }
-.fq-footer__inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--fq-space-8);
+
+.fq-footer__grid { row-gap: var(--fq-space-10); }
+
+.fq-footer__col { display: flex; flex-direction: column; align-items: flex-start; gap: var(--fq-space-2); }
+.fq-footer__col .fq-label { margin-block-end: var(--fq-space-2); }
+
+.fq-footer__link {
+  color: var(--fq-text-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: var(--fq-size-legend);
+  line-height: var(--fq-leading-solid);
+  transition: color var(--fq-dur-snap) ease;
+}
+.fq-footer__link:hover { color: var(--fq-text-strong); }
+
+.fq-footer__value {
+  margin: 0;
+  color: var(--fq-text-dim);
+  font-size: var(--fq-size-legend);
+  line-height: var(--fq-leading-solid);
+}
+
+/* The wordmark sits on its own rule, full width, as the footer's baseline. */
+.fq-footer__mark {
+  margin-block-start: var(--fq-space-15);
+  padding-block-start: var(--fq-space-8);
+  border-block-start: var(--fq-rule);
 }
 .fq-footer__tagline {
   margin: 0;
-  color: var(--fq-text-decorative);
+  color: var(--fq-text-dim);
   text-transform: uppercase;
   font-family: var(--fq-font-display);
   font-size: clamp(1.75rem, 1rem + 3.2vw, 3.5rem);
   line-height: var(--fq-leading-solid);
   letter-spacing: var(--fq-track-display);
 }
-.fq-footer__links { display: flex; flex-wrap: wrap; gap: var(--fq-space-5); }
-.fq-footer__link {
-  color: var(--fq-text-dim);
-  text-decoration: none;
-  text-transform: uppercase;
-  font-size: var(--fq-size-legend);
-  transition: color var(--fq-dur-snap) ease;
-}
-.fq-footer__link:hover { color: var(--fq-accent); }
 .fq-footer__legal {
-  margin: var(--fq-space-10) 0 0;
-  color: var(--fq-text-decorative);
+  margin: var(--fq-space-5) 0 0;
+  color: var(--fq-text-dim);
   font-size: var(--fq-size-legend);
   line-height: var(--fq-leading-tight);
 }

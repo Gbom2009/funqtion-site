@@ -32,10 +32,13 @@
 
     function open() {
       menu.showModal();
-      // Force a frame so the mask transition has a start value to animate from.
-      requestAnimationFrame(function () {
-        menu.classList.add('is-open');
-      });
+      // showModal() flips the dialog out of display:none. Reading offsetWidth
+      // commits that synchronously so the masks have a start value to animate
+      // from. A single rAF usually achieves the same thing and does so
+      // reliably in testing here, but it is not guaranteed to land after the
+      // display change has been committed; this is.
+      void menu.offsetWidth;
+      menu.classList.add('is-open');
       trigger.setAttribute('aria-expanded', 'true');
       document.documentElement.style.overflow = 'hidden';
     }
@@ -49,16 +52,21 @@
         menu.close();
         return;
       }
-      // Wait for the rows to travel back behind their masks before removing
-      // the dialog, but never leave it hanging if no transition fires.
+      // Wait for the rows to travel back behind their masks. transitionend
+      // BUBBLES, so listening on the dialog fired on the FIRST row to finish
+      // (250ms) and cut the outbound stagger in half: measured, the dialog
+      // closed at 285ms while the last row needs 525ms. Listen on the last
+      // thing still moving instead, row 6's index, whose delay is
+      // calc(5 * 0.05s + 0.025s) = 275ms plus a 250ms duration.
       var done = false;
       var finish = function () {
         if (done) return;
         done = true;
         menu.close();
       };
-      menu.addEventListener('transitionend', finish, { once: true });
-      window.setTimeout(finish, 400);
+      var last = menu.querySelector('.fq-menu__list li:last-child .fq-menu__index');
+      (last || menu).addEventListener('transitionend', finish, { once: true });
+      window.setTimeout(finish, 600);
     }
 
     trigger.addEventListener('click', function () {
