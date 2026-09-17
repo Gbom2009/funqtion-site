@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Funqtion — Allround DJ's</title>
+<meta name="description" content="Team Funqtion — allround DJ-duo uit Aarle-Rixtel. Geluid, licht en muziek voor elk feest.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --fq-page:#040404; --fq-raised:#0a0a0a; --fq-dusk:#141414;
+  --fq-hairline:#363636; --fq-machine:#6c6c6c; --fq-flat:#8d8d8d;
+  --fq-off-white:#d9d9d9; --fq-power:#f0f0f0;
+  --fq-accent:#f68712;
+  --fq-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --fq-display:'Archivo Black','Arial Black',system-ui,sans-serif;
+  --fq-rule:1px solid var(--fq-hairline);
+  --fq-gutter:1.25rem;
+  --fq-bracket:14px;
+}
+@media (max-width:767px){ :root{ --fq-gutter:1rem; } }
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; min-height:100svh;
+  background:var(--fq-page); color:var(--fq-off-white);
+  font:400 13px/1.545 var(--fq-mono);
+  -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column;
+}
+::selection{background:var(--fq-accent);color:var(--fq-page)}
+a{color:inherit}
+:where(a,button):focus-visible{outline:2px solid var(--fq-power);outline-offset:3px}
+
+/* ---- grid: twelve columns, zero gap ---- */
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:0;width:100%}
+.wrap{padding-inline:var(--fq-gutter)}
+
+/* ---- top bar ---- */
+.bar{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:var(--fq-gutter);
+  padding:var(--fq-gutter);
+  border-bottom:var(--fq-rule);
+}
+.bar__logo{display:flex;align-items:center;gap:.75rem;text-decoration:none}
+.bar__logo img{display:block;width:34px;height:auto}
+.bar__wordmark{
+  font:500 11px/1 var(--fq-mono);letter-spacing:.03em;
+  text-transform:uppercase;color:var(--fq-flat);
+}
+.bar__ref{font:300 11px/1 var(--fq-mono);color:var(--fq-machine);letter-spacing:.03em}
+
+/* ---- main ---- */
+main{flex:1;display:flex;flex-direction:column;justify-content:center;
+     padding-block:clamp(3rem,10vh,7.5rem)}
+
+.hero{align-items:end;row-gap:2.5rem}
+.hero__id{grid-column:1/span 3}
+.hero__title{grid-column:5/span 8}
+@media (max-width:767px){
+  .hero__id,.hero__title{grid-column:1/span 12}
+  .hero{row-gap:1.5rem}
+}
+
+.label{
+  margin:0;font:300 11px/1 var(--fq-mono);letter-spacing:.03em;
+  text-transform:uppercase;color:var(--fq-machine);
+}
+h1{
+  margin:0;
+  font:400 clamp(2.25rem,1.2rem + 4.3vw,5rem)/0.92 var(--fq-display);
+  letter-spacing:-.03em;text-transform:uppercase;color:var(--fq-power);
+}
+.hero__sub{
+  margin:.75rem 0 0;font:400 13px/1 var(--fq-mono);
+  text-transform:uppercase;letter-spacing:.03em;color:var(--fq-flat);
+}
+
+/* ---- status readout ---- */
+.status{margin-top:clamp(2.5rem,7vh,5rem);row-gap:0}
+.status__row{
+  grid-column:1/span 12;
+  display:grid;grid-template-columns:repeat(12,1fr);gap:0;
+  padding-block:.75rem;border-top:var(--fq-rule);
+}
+.status__row:last-child{border-bottom:var(--fq-rule)}
+.status__k{grid-column:1/span 3;color:var(--fq-machine)}
+.status__v{grid-column:5/span 8;color:var(--fq-off-white);margin:0}
+.status__k,.status__v{font:300 13px/1.4 var(--fq-mono);margin:0}
+@media (max-width:767px){
+  .status__k{grid-column:1/span 4}
+  .status__v{grid-column:5/span 8}
+}
+.live{color:var(--fq-accent)}
+.cursor{
+  display:inline-block;width:6px;height:12px;background:var(--fq-accent);
+  margin-right:.5rem;transform:translateY(1px);
+}
+@media (prefers-reduced-motion:no-preference){
+  .cursor{animation:blink 1.2s steps(1,end) infinite}
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.15}}
+}
+
+/* ---- contact: bracketed buttons ---- */
+.contact{margin-top:clamp(2.5rem,7vh,5rem);gap:0}
+.contact__inner{grid-column:1/span 12;display:flex;flex-wrap:wrap;gap:var(--fq-gutter)}
+.btn{
+  --bc:var(--fq-flat);
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  min-width:150px;min-height:50px;padding:1rem;
+  color:var(--fq-flat);text-decoration:none;text-transform:uppercase;
+  font:400 13px/1 var(--fq-display);letter-spacing:-.03em;
+  transition:color .2s ease;
+}
+.btn::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(var(--bc) 0 0),linear-gradient(var(--bc) 0 0),
+    linear-gradient(var(--bc) 0 0),linear-gradient(var(--bc) 0 0),
+    linear-gradient(var(--bc) 0 0),linear-gradient(var(--bc) 0 0),
+    linear-gradient(var(--bc) 0 0),linear-gradient(var(--bc) 0 0);
+  background-repeat:no-repeat;
+  background-size:
+    var(--fq-bracket) 1px,1px var(--fq-bracket),
+    var(--fq-bracket) 1px,1px var(--fq-bracket),
+    var(--fq-bracket) 1px,1px var(--fq-bracket),
+    var(--fq-bracket) 1px,1px var(--fq-bracket);
+  background-position:
+    left top,left top,right top,right top,
+    left bottom,left bottom,right bottom,right bottom;
+}
+.btn:hover,.btn:focus-visible{color:var(--fq-power);--bc:var(--fq-accent)}
+
+/* ---- footer ---- */
+footer{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:var(--fq-gutter);flex-wrap:wrap;
+  padding:var(--fq-gutter);border-top:var(--fq-rule);
+  font:300 11px/1 var(--fq-mono);letter-spacing:.03em;
+  text-transform:uppercase;color:var(--fq-machine);
+}
+
+/* ---- grain ---- */
+.grain{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:100}
+.grain__layer{position:absolute;top:-100%;left:-100%;width:300%;height:300%;
+              background-repeat:repeat;will-change:transform}
+@media (max-width:479px){.grain{opacity:.2}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="bar__logo" href="/">
+    <img src="img/logo.svg" alt="Team Funqtion logo" width="34" height="34">
+    <span class="bar__wordmark">Team Funqtion</span>
+  </a>
+  <span class="bar__ref">FQ-25</span>
+</header>
+
+<main class="wrap">
+  <div class="grid hero">
+    <div class="hero__id">
+      <p class="label">01 / Index</p>
+    </div>
+    <div class="hero__title">
+      <h1>Team<br>Funqtion</h1>
+      <p class="hero__sub">Allround DJ's — Aarle-Rixtel</p>
+    </div>
+  </div>
+
+  <div class="grid status">
+    <div class="status__row">
+      <p class="status__k">Status</p>
+      <p class="status__v"><span class="cursor" aria-hidden="true"></span><span class="live">Site in aanbouw</span></p>
+    </div>
+    <div class="status__row">
+      <p class="status__k">Bezetting</p>
+      <p class="status__v">Gijs van Doren · Coen Peels</p>
+    </div>
+    <div class="status__row">
+      <p class="status__k">Levering</p>
+      <p class="status__v">Geluid · Licht · Laser</p>
+    </div>
+    <div class="status__row">
+      <p class="status__k">Boeking</p>
+      <p class="status__v">Open</p>
+    </div>
+  </div>
+
+  <div class="grid contact">
+    <div class="contact__inner">
+      <a class="btn" href="mailto:Booking@funqtion.nl">Boek ons</a>
+      <a class="btn" href="https://www.instagram.com/funqtion1/" target="_blank" rel="noopener">Instagram</a>
+      <a class="btn" href="https://www.facebook.com/share/1C3HbUUbbw/?mibextid=wwXIfr" target="_blank" rel="noopener">Facebook</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>&copy; Feel the Musiq</span>
+  <span>Booking@funqtion.nl</span>
+</footer>
+
+<div class="grain" id="grain" aria-hidden="true"></div>
+
+<script>
+(function(){
+  var host = document.getElementById('grain');
+  if (!host) return;
+
+  function tile(size, pitch, w, h, alpha){
+    var c = document.createElement('canvas');
+    c.width = c.height = size;
+    var x = c.getContext('2d');
+    for (var y = 0; y < size; y += pitch){
+      for (var i = 0; i < size; i += pitch){
+        var v = (Math.random() * 256) | 0;
+        x.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' + alpha + ')';
+        x.fillRect(i, y, w, h);
+      }
+    }
+    return c.toDataURL('image/png');
+  }
+
+  var layer = document.createElement('div');
+  layer.className = 'grain__layer';
+  layer.style.backgroundImage = 'url(' + tile(600, 5, 5, 1, 0.05) + ')';
+  host.appendChild(layer);
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var path = [[-0.33,0.33],[-0.83,0],[-1,0.33],[-1,1],[-0.67,0.67],
+              [-0.5,0.33],[-0.67,0.67],[-0.17,0.67],[-0.83,0.17],[-1,0.83],[-0.33,0.33]];
+  layer.animate(
+    path.map(function(p){ return { transform:'translate(' + (p[0]*30) + '%,' + (p[1]*30) + '%)' }; }),
+    { duration:500, iterations:Infinity, easing:'steps(20,end)' }
+  );
+})();
+</script>
+</body>
+</html>
