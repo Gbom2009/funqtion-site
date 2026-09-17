@@ -126,7 +126,6 @@
   /* === 8. Motion ==========================================================
      The reference's single CustomEase is one cubic and needs no library. */
   --fq-ease-machine: cubic-bezier(0.14, 0.86, 0.37, 0.96);
-  --fq-ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
   --fq-dur-snap:     0.2s;
   --fq-dur-reveal:   0.25s;
   --fq-stagger:      0.05s;
@@ -210,8 +209,10 @@ img::selection { background-color: transparent; }
 
 /* --- Global reduced-motion contract ---------------------------------------
    The reference honours prefers-reduced-motion nowhere (chapter 31). Here it
-   kills every transition, every transform reveal, and the grain animation
-   (grain.js checks the same query before it starts). */
+   kills every CSS transition and transform reveal. It does NOT reach the
+   grain: that is a WAAPI element.animate() animation and CSS
+   animation-duration has no effect on it, so grain.js checks the query itself
+   and also listens for changes to it. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {

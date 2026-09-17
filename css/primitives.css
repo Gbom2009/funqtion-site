@@ -176,7 +176,27 @@
   border-block-end: 1px solid var(--fq-hairline);
   transition: color var(--fq-dur-snap) ease, border-color var(--fq-dur-snap) ease;
 }
-.fq-link:hover { color: var(--fq-accent); border-block-end-color: var(--fq-accent); }
+.fq-link:hover { color: var(--fq-text-strong); border-block-end-color: var(--fq-text-dim); }
+
+/* ---------------------------------------------------------------------------
+   The one-shot heading lift (reference 10.5)
+   The reference reveals headings line by line behind masks, driven by GSAP
+   ScrollTrigger and SplitType. The same read is available with a clip-path
+   inset and no wrapper element, no observer and no library: the h1 is above
+   the fold on all six pages, so it fires once at load and never again.
+   Strictly one-shot, 420ms, and it does not exist at all under reduced motion.
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .fq-h1,
+  .fq-hero__title {
+    animation: fq-lift 420ms var(--fq-ease-machine) both;
+  }
+  @keyframes fq-lift {
+    from { clip-path: inset(0 0 100% 0); transform: translateY(0.28em); }
+    /* -25% bottom so descenders are never clipped at rest */
+    to   { clip-path: inset(0 0 -25% 0); transform: none; }
+  }
+}
 
 /* ===========================================================================
    4. Hairlines (reference 32.2.5)
@@ -256,9 +276,14 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   letter-spacing: var(--fq-track-display);
   transition: color var(--fq-dur-snap) ease;
 }
-.fq-button:hover,
+/* Hover moves up the achromatic ramp. Focus keeps the accent, because the
+   global :focus-visible ring is the one place a keyboard user must not miss. */
+.fq-button:hover {
+  color: var(--fq-text-strong);
+  --fq-bracket-color: var(--fq-text-strong);
+}
 .fq-button:focus-visible {
-  color: var(--fq-accent);
+  color: var(--fq-text-strong);
   --fq-bracket-color: var(--fq-accent);
 }
 .fq-button--block { --fq-button-width: 100%; inline-size: 100%; }
@@ -466,7 +491,7 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   line-height: 1;
   transition: color var(--fq-dur-snap) ease;
 }
-.fq-menu__close:hover { color: var(--fq-accent); }
+.fq-menu__close:hover { color: var(--fq-text-strong); }
 
 .fq-menu__list { list-style: none; margin: 0; padding: 0; }
 
@@ -668,4 +693,6 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   pointer-events: none;
   z-index: var(--fq-z-grain);
 }
-@media screen and (max-width: 479px) { .fq-grain-host { opacity: 0.35; } }
+/* No mobile opacity override. The reference drops to 0.2 on small screens to
+   hide DPR haze from authoring the tile in CSS pixels; grain.js bakes at
+   devicePixelRatio instead, so the haze never happens. */

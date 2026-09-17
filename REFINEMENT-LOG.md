@@ -151,3 +151,85 @@ honest, but logged so the number is not repeated as fact.
 - **The justified hero with the `text-indent` staircase, the display face as running body
   copy, and a third technical-label face.** All three need the reference's scale, its video
   layer, or a font it admits was never rendered.
+
+---
+
+## System 3: motion (chapter 10)
+
+| # | Change | Source | Decision |
+|---|---|---|---|
+| 3.1 | `grain.js`: delete the tile-cycling `setInterval` and drop `frames` 3 → 1 | 10.7.4, 11.1.7 | **keep** |
+| 3.2 | `grain.js`: drift from 500ms/`steps(20)` to 3000ms/`steps(6)` | 10.7.4 | **keep** |
+| 3.3 | `grain.js`: `will-change: transform` only when an animation actually exists | 10.17, 30.13 | **keep** |
+| 3.4 | `grain.js`: listen for `prefers-reduced-motion` changes and cancel for real | 10.17 | **keep** |
+| 3.5 | Correct the false claim in the `tokens.css` reduced-motion comment | 10.17 | **keep** |
+| 3.6 | Strip the accent from every hover; hover moves up the achromatic ramp, focus keeps the accent | 10.11.1 | **keep** |
+| 3.7 | Delete the `translateX(4px)` arrow hover and the dead `transform` transition | 10.11 | **keep** |
+| 3.8 | Delete `--fq-ease-out`, orphaned by 3.7 | 10.4 | **keep** |
+| 3.9 | One-shot masked heading lift, 420ms, `clip-path` inset, no wrapper and no library | 10.5 | **keep** |
+| 3.10 | One-shot 180ms flicker on the hero title | 10.7 | **REVERT** |
+
+### Notes
+
+**3.1 and 3.2 — these were hard-constraint violations that pass one shipped.** The brief
+forbids any animation loop faster than 200ms. `grain.js` was running two, on all six pages,
+forever:
+
+| Loop | Rate | Status |
+|---|---|---|
+| `setInterval(1000/12)` cycling three baked tiles | 83ms, 12Hz | deleted outright |
+| WAAPI drift, `duration: 500` with `steps(20, end)` | one position jump every 25ms, 40Hz | now 3000ms/`steps(6)` = one move every 500ms |
+
+Verified after the change with `document.getAnimations()` on three pages: exactly one
+infinite animation, step interval 500ms, no violation. Dropping to a single baked tile also
+removes two 1200×1200 canvases (roughly 75KB of runtime data URL) that existed only to make
+a texture nobody can perceive changing, change.
+
+**3.4 and 3.5 — the reduced-motion contract was advertised but not delivered.** `tokens.css`
+claimed its global `prefers-reduced-motion` block "kills ... the grain animation". It cannot:
+the grain is a WAAPI `element.animate()` animation and CSS `animation-duration` has no effect
+on one. The initial check was correct, so a user who loads the page with the preference set
+was always fine, but a user who *changes* it mid-session kept the animation. Now there is a
+`change` listener that cancels for real, and the comment says what actually happens.
+Verified: 0 animations and `will-change: auto` under reduce, on every page.
+
+**3.2 — grain recalibrated and re-measured, not eyeballed.** Opacity also went 0.05 → 0.035,
+which is the reference's own formula for this page colour: `opacity × (128 − bg)` =
+`0.035 × 124` = 4.34/255. Measured on a guaranteed-flat region: with the grain hidden the
+field is `mean 4, sd 0, range 4–4`; with it on, `mean 4.54, sd 1.55, range 3–12`. Nine levels
+peak to peak, and the 12 maximum matches the formula's prediction for a full-brightness mark
+(`4 + 0.035 × 251 = 12.8`). The texture is present and correctly calibrated.
+
+**3.6 — accent discipline.** Four rules turned things orange on hover. Hover is now a move up
+the grey ramp and the accent is reserved for two things: the `:focus-visible` ring, which a
+keyboard user must not miss, and the current-page marker.
+
+**3.10 — REVERTED.** Built as specified: one-shot, 180ms, two luminance edges, one element per
+page, never looping, absent under reduced motion. Then measured: sampling the hero's computed
+opacity fourteen times at 60ms intervals across the animation window returned **1.00 every
+time**. A 180ms two-edge dip, firing once, 420ms into the load, immediately after the lift, is
+not perceptible. I could not catch it while deliberately looking for it. It bought nothing and
+carried a photosensitivity-adjacent pattern, so it is gone.
+
+### Discrepancy found
+
+**The premise that hover in this system is "luminance, never hue" is not what the document
+says.** The refine brief asked me to verify it. Section 10.11.1 actually opens "the site's
+hover vocabulary is almost entirely COLOUR", and about ten of its fifteen hover rules animate
+`color`. The principle survives only in the weaker form "hue never changes" — and even that
+has a counterexample inside the evidence cell for the principle itself, which cites a rule
+restoring saturation on hover. The recommendation to strip orange still stands, but on the
+narrower and better-supported ground that **no hover anywhere in the reference uses the accent
+token**, not on a principle the document contradicts.
+
+### Rejected from the mining
+
+- **A count-up to `04` on feesten.html.** The refine brief asks for this as "exactly the
+  register". Section 10.12's actual finding is that the reference has no count-up anywhere;
+  its numerals are static. Animating a number from 0 to 4 on a page that shows four gigs is
+  inventing a behaviour and attributing it to the reference.
+- **Blanket `IntersectionObserver` reveals** on gigs, inventory rows and Spotify embeds.
+  Content that is already in the document, hidden until scrolled to, for texture.
+- **The text-glitch family and the self-alphabet scramble.** Sub-200ms loops that replace
+  readable text with noise.
+- **Marquees as motion** (10.6) — assessed under components instead.

@@ -112,7 +112,6 @@
     // Authoring the tile in CSS pixels is what turns a crisp 1px line into
     // haze on a high-DPR screen; pin the paint size to the CSS size.
     layer.style.backgroundSize = size + 'px ' + size + 'px';
-    layer.style.willChange = 'transform';
     host.appendChild(layer);
 
     var anim = null;
@@ -125,6 +124,11 @@
         [-0.50, 0.33], [-0.67, 0.67], [-0.17, 0.67], [-0.83, 0.17], [-1.00, 0.83],
         [-0.33, 0.33]
       ];
+      // One discrete position every duration/steps ms. At the original
+      // 500ms/20 that is a jump every 25ms: a 40Hz positional strobe, and a
+      // straight violation of the 200ms floor. 3000ms over 6 steps is one
+      // move every 500ms.
+      layer.style.willChange = 'transform';
       anim = layer.animate(
         path.map(function (p) {
           return { transform: 'translate(' + (p[0] * drift) + '%,' + (p[1] * drift) + '%)' };
@@ -140,17 +144,24 @@
       );
     }
 
-    if (!reduce && urls.length > 1) {
-      var i2 = 0;
-      timer = window.setInterval(function () {
-        i2 = (i2 + 1) % urls.length;
-        layer.style.backgroundImage = 'url(' + urls[i2] + ')';
-      }, Math.round(1000 / frameRate));
-    }
+    // The global prefers-reduced-motion block in tokens.css cannot stop this:
+    // CSS animation-duration has no effect on element.animate(). Listen, and
+    // cancel for real if the preference changes mid-session.
+    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var onPrefChange = function () {
+      if (mq.matches && anim) {
+        anim.cancel();
+        anim = null;
+        layer.style.willChange = '';
+        layer.style.transform = 'none';
+      }
+    };
+    if (mq.addEventListener) { mq.addEventListener('change', onPrefChange); }
 
     return function teardown() {
       if (anim) anim.cancel();
       if (timer) window.clearInterval(timer);
+      if (mq.removeEventListener) { mq.removeEventListener('change', onPrefChange); }
       layer.remove();
     };
   }
@@ -159,9 +170,9 @@
     var host = document.getElementById('fq-grain');
     if (!host) return;
     mountGrain(host, {
-      size: 600, pitch: 5, markWidth: 5, markHeight: 1, opacity: 0.05,
-      drift: 30, duration: 500, steps: 20,
-      frames: 3, frameRate: 12
+      size: 600, pitch: 5, markWidth: 5, markHeight: 1, opacity: 0.035,
+      drift: 30, duration: 3000, steps: 6,
+      frames: 1
     });
   }
 

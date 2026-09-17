@@ -97,13 +97,12 @@
   color: var(--fq-text-decorative);
   font-size: var(--fq-size-data);
   line-height: var(--fq-leading-solid);
-  transition: color var(--fq-dur-snap) ease, transform var(--fq-dur-snap) var(--fq-ease-out);
+  transition: color var(--fq-dur-snap) ease;
 }
 .fq-index-list__row:hover .fq-index-list__label,
 .fq-index-list__row:focus-visible .fq-index-list__label { color: var(--fq-text-strong); }
 .fq-index-list__row:hover .fq-index-list__num,
-.fq-index-list__row:hover .fq-index-list__arrow { color: var(--fq-accent); }
-.fq-index-list__row:hover .fq-index-list__arrow { transform: translateX(4px); }
+.fq-index-list__row:hover .fq-index-list__arrow { color: var(--fq-text-strong); }
 
 /* ===========================================================================
    3. Socials
@@ -122,7 +121,7 @@
   line-height: var(--fq-leading-solid);
   transition: color var(--fq-dur-snap) ease;
 }
-.fq-social:hover { color: var(--fq-accent); }
+.fq-social:hover { color: var(--fq-text-strong); }
 .fq-social svg { inline-size: 16px; block-size: 16px; fill: currentColor; flex: 0 0 auto; }
 
 /* ===========================================================================
