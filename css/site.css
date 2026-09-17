@@ -78,7 +78,6 @@
   inline-size: 3ch;
   color: var(--fq-text-decorative);
   font-size: var(--fq-size-legend);
-  font-variant-numeric: tabular-nums;
   line-height: var(--fq-leading-solid);
   transition: color var(--fq-dur-snap) ease;
 }
@@ -177,17 +176,6 @@
 
 .fq-inventory { margin-block-start: var(--fq-space-8); }
 
-/* The single positive-tracking use in the whole system, reserved for the
-   hardware label. (brief 3.2) */
-.fq-hardware-label {
-  color: var(--fq-text-dim);
-  text-transform: uppercase;
-  font-family: var(--fq-font-mono);
-  font-size: var(--fq-size-legend);
-  font-weight: var(--fq-weight-regular);
-  letter-spacing: var(--fq-track-open);
-  line-height: var(--fq-leading-solid);
-}
 
 /* ===========================================================================
    7. Embeds (boeken.html, tip.html)

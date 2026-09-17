@@ -77,3 +77,77 @@ start more than 400px down the page.
 - **The nav reveal stagger on page load, the `mix-blend-mode: difference` tagline strip, and
   scrollbar suppression** (8.3). The first is decoration on a six-link bar; the second needs
   video behind it and the page is flat `#040404`; the third removes a real affordance.
+
+---
+
+## System 2: typography (chapter 6)
+
+| # | Change | Source | Decision |
+|---|---|---|---|
+| 2.1 | Delete all six `font-variant-numeric: tabular-nums` declarations | 6.8, 6.13 | **keep** |
+| 2.2 | `::selection` off the accent to `--fq-off-white`, plus `img::selection { transparent }` | 6.15 | **keep** |
+| 2.3 | Delete `.fq-hardware-label`; move the system's one positive tracking (`0.03em`) onto `.fq-label` | 6.8 | **keep** |
+| 2.4 | `--fq-size-sub` 17px → 21px | 6.5, 6.7 | **keep** |
+| 2.5 | Remove `font-style: italic` from `.fq-caption` | 6.18 | **keep** |
+| 2.6 | Remove `letter-spacing: var(--fq-track-display)` from `.fq-event__tag` | 6.8 | **keep** |
+| 2.7 | Delete dead tokens `--fq-weight-medium`, `--fq-size-micro`, `--fq-size-title` | 6.5 | **keep** |
+| 2.8 | Drop weight 500 from the Google Fonts query on all six pages | 6.18, 30.11 | **keep** |
+| 2.9 | `text-wrap: balance` on h1/h2/h3, `text-wrap: pretty` on prose | 6.19 | **keep** |
+| 2.10 | Remove `-webkit-font-smoothing: antialiased` from `body` | 6.14 | **REVERT** |
+
+### Notes
+
+**2.1 — verified as genuinely dead code before deleting.** The claim was that
+`tabular-nums` is a no-op on a monospace stack. Measured in the browser rather than assumed:
+the per-digit width spread across `0`–`9` in JetBrains Mono is **0px**, and the string
+`0123456789` measures **78.016px with and without** the property. All six declarations were
+inert. This is the opposite of the refine brief's expectation, which asked for tabular
+numerals to be *added*: the font already guarantees them.
+
+**2.2 — the single best orange saving in the pass.** Dragging a cursor across a Dutch
+paragraph painted a solid `#f68712` block behind it: the largest orange area the site could
+produce, and reader-triggered rather than designer-controlled. Now an off-white highlight,
+confirmed by screenshot.
+
+**2.3 — one rule, not one element.** `.fq-hardware-label` was a byte-for-byte duplicate of
+`.fq-label` apart from margin and tracking, used on four rows of one page. The positive
+tracking now lives on the panel legend itself, which is the site's silk-screened-label
+register and appears on every section. Still exactly one positive-tracking declaration.
+
+**2.5 — no italic axis is loaded.** The font query asks for `wght@300;400` only, so
+`font-style: italic` on the gig captions was rendering a synthetic oblique: upright glyphs
+sheared by the rasteriser on a monospace face at 11px.
+
+**2.10 — REVERTED.** The argument was that the reference's *effective* smoothing is `auto`,
+because its `body { antialiased }` is overridden by a later universal-selector rule, and
+that Funqtion had copied the dead half of that pair. Plausible. But I could not demonstrate
+any improvement, and could not even observe a difference in headless Chromium on Linux,
+where the property is largely inert. A change whose only justification is fidelity to a
+document that was never fact-checked, and whose effect I cannot see, does not meet the bar.
+Reverted.
+
+### Discrepancy found
+
+**The weight-500 saving was overstated by roughly two orders of magnitude.** The mining
+agent argued that dropping `500` from the Google Fonts query saves "a third @font-face,
+~25KB of woff2". Checking `document.fonts` at runtime, all three JetBrains Mono 500 faces
+report `status: "unloaded"` — the browser declares them from the CSS but never downloads a
+face nothing uses. Only weights **300 and 400** are ever computed on the page. The real
+saving is the `@font-face` declarations in the stylesheet Google serves plus four characters
+of URL on six pages, not 25KB. Kept anyway, because it is free and it makes the request
+honest, but logged so the number is not repeated as fact.
+
+### Rejected from the mining
+
+- **`-webkit-line-clamp: 2` on gig titles** (6.12). It exists in the reference to stop a
+  43-item CMS grid reflowing when an editor types a long name. There are four gigs and their
+  titles are fixed strings in the HTML. Nothing to defend against.
+- **Reproducing the reference's 11px prose.** The 15px decision from pass one stands. The
+  reference's 11px works because almost nothing it calls prose is prose; this site has real
+  Dutch sentences.
+- **Raising the uppercase ratio toward the reference's 36-of-65.** Counted here: 18 of 92
+  selectors. The gap is almost entirely real prose paragraphs, which must not be uppercased.
+  The label, heading and nav registers are already fully uppercase.
+- **The justified hero with the `text-indent` staircase, the display face as running body
+  copy, and a third technical-label face.** All three need the reference's scale, its video
+  layer, or a font it admits was never rendered.

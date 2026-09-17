@@ -76,18 +76,15 @@
 
   --fq-weight-light:   300;
   --fq-weight-regular: 400;
-  --fq-weight-medium:  500;
 
   /* Static scale. The reference's ladder is 9/11/13/15/17/21/24/27/40 with
      11px carrying body copy. 11px is kept for the machine-readout register
      (labels, indices, tags) but real Dutch prose is set at 15px: see the
      note in the build summary. This is the one type deviation. */
-  --fq-size-micro:  9px;
   --fq-size-legend: 11px;  /* labels, indices, tags, captions */
   --fq-size-data:   13px;  /* datasheet rows, buttons, nav */
   --fq-size-body:   15px;  /* prose paragraphs */
-  --fq-size-sub:    17px;
-  --fq-size-title:  21px;
+  --fq-size-sub:    21px;
   --fq-size-util:   24px;
 
   /* Fluid display sizes, derived the way reference 32.1.3 derives them:
@@ -183,10 +180,14 @@ img { max-width: 100%; }
   border-radius: 2px;
 }
 
+/* Selection is a luminance move, not an accent one. A solid #f68712 block
+   dragged across a paragraph was the largest orange area the site could
+   produce, and the reader triggers it. */
 ::selection {
-  background-color: var(--fq-accent);
+  background-color: var(--fq-off-white);
   color: var(--fq-page);
 }
+img::selection { background-color: transparent; }
 
 .fq-visually-hidden {
   position: absolute; width: 1px; height: 1px;

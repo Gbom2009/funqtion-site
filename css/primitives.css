@@ -70,6 +70,9 @@
   margin: 0 0 var(--fq-space-4);
   color: var(--fq-text-dim);
   text-transform: uppercase;
+  /* The system's ONE positive tracking, spent on the panel legend: the
+     silk-screened-on-hardware register that appears on every section. */
+  letter-spacing: var(--fq-track-open);
   font-family: var(--fq-font-mono);
   font-size: var(--fq-size-legend);
   font-weight: var(--fq-weight-regular);
@@ -83,13 +86,13 @@
   font-family: var(--fq-font-mono);
   font-size: var(--fq-size-legend);
   font-weight: var(--fq-weight-light);
-  font-variant-numeric: tabular-nums;
   line-height: var(--fq-leading-solid);
 }
 .fq-index--live { color: var(--fq-text-accent); }
 
 .fq-h1 {
   margin: 0 0 var(--fq-space-5);
+  text-wrap: balance;
   color: var(--fq-text-strong);
   text-transform: uppercase;
   font-family: var(--fq-font-display);
@@ -101,6 +104,7 @@
 
 .fq-h2 {
   margin: 0 0 var(--fq-space-5);
+  text-wrap: balance;
   color: var(--fq-text);
   text-transform: uppercase;
   font-family: var(--fq-font-display);
@@ -112,6 +116,7 @@
 
 .fq-h3 {
   margin: 0 0 var(--fq-space-3);
+  text-wrap: balance;
   color: var(--fq-text);
   text-transform: uppercase;
   font-family: var(--fq-font-display);
@@ -132,6 +137,7 @@
 
 .fq-prose {
   margin: 0 0 var(--fq-space-4);
+  text-wrap: pretty;
   max-inline-size: 62ch;
   color: var(--fq-text-dim);
   font-size: var(--fq-size-body);
@@ -161,7 +167,6 @@
   margin: var(--fq-space-4) 0 0;
   color: var(--fq-text-decorative);
   font-size: var(--fq-size-legend);
-  font-style: italic;
   line-height: var(--fq-leading-tight);
 }
 
@@ -301,7 +306,6 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 .fq-datasheet__value--end { text-align: end; }
 .fq-datasheet__value--index {
   color: var(--fq-text-decorative);
-  font-variant-numeric: tabular-nums;
 }
 
 @media screen and (max-width: 767px) {
@@ -349,7 +353,6 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
 .fq-topbar__partno {
   color: var(--fq-text-decorative);
   font-size: var(--fq-size-legend);
-  font-variant-numeric: tabular-nums;
 }
 @media screen and (max-width: 479px) { .fq-topbar__partno { display: none; } }
 
@@ -500,7 +503,6 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   font-size: var(--fq-size-data);
   font-weight: var(--fq-weight-light);
   line-height: var(--fq-leading-solid);
-  font-variant-numeric: tabular-nums;
 }
 .fq-menu__row:hover .fq-menu__label,
 .fq-menu__row:focus-visible .fq-menu__label { color: var(--fq-text-strong); }
@@ -567,9 +569,7 @@ hr.fq-divider--dashed { border-block-start: var(--fq-rule-dashed); }
   color: var(--fq-bashed-white);
   text-transform: uppercase;
   font-size: var(--fq-size-legend);
-  font-variant-numeric: tabular-nums;
   line-height: var(--fq-leading-solid);
-  letter-spacing: var(--fq-track-display);
 }
 
 .fq-event__head {
