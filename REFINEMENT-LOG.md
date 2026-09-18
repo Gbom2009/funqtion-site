@@ -723,3 +723,100 @@ and there is no horizontal overflow at 390, 768 or 991.
   the accent still reads as a marker.
 - **Minifying to buy back the 21% spent on comments.** It would need a build step, which
   the brief forbids, and the site is 19 KB under budget and 35 KB over the wire.
+
+---
+
+# Follow-up: the boot becomes a CRT power-on
+
+Client note after the revision pass shipped: make the startup look like a CRT
+starting up. This replaces system 1 of that pass rather than adding to it.
+
+## What changed, and why it is a different thing from the dissolve
+
+The dissolve was faithful to chapter 10.8.1, and the reference describes it as
+reading like "a CRT settling". Settling is what a tube does once its raster is
+already open — it is the end of the process. The client asked for the start of
+it. So the sequence is now the order the hardware actually powers up in:
+
+| phase | ms | what is on screen |
+|---|---|---|
+| heater | 0–80 | nothing; the screen is dark |
+| strike | 80–210 | the beam lands with no deflection: a point at the centre |
+| horizontal ramp | 210–~430 | the point stretches into a bright hairline |
+| vertical ramp | 300–600 | the line opens into a full raster; the page is behind it |
+| settle | 600–640 | phosphor overshoot decays, scanlines fade |
+| removed | 700 | |
+
+Five layers, one WAAPI animation each. The scanline layer is not invented: it
+uses the same **5px horizontal pitch as `#grained`** (reference 11.1.3), so the
+boot and the permanent texture are one raster at two strengths.
+
+The dither dissolve is in git history and is a one-file revert if it is wanted
+back.
+
+### Notes
+
+- **Nothing loops.** All five animations are `iterations: 1`; the shortest is
+  300ms. The 200ms floor is not in play because there is no repetition at all.
+- **Flash safety, measured rather than asserted.** Mean screen relative
+  luminance sampled every 35ms across the whole sequence rises monotonically
+  from 0.0010 to a peak of 0.0424 and settles at 0.0298 — a peak-to-trough
+  swing of **0.041**, in one rise and one fall over ~560ms. WCAG 2.3.1's
+  general flash threshold is a ≥0.1 swing occurring more than three times in a
+  second. Clear on magnitude and on frequency, with room to spare on both.
+- **The overlay cannot interfere with the page it is covering.** `aria-hidden`,
+  zero focusable descendants, `pointer-events: none`. Verified: mid-boot,
+  `elementFromPoint` at the centre of the screen returns the hero, a Tab lands
+  on the skip link, and a click on a nav link navigates.
+- **Measured:** ~800ms from navigation start to a clear page against a 900ms
+  budget; skip clears it in 10ms; absent under `prefers-reduced-motion` with
+  `document.getAnimations()` at 0; once per session over both `file://` and
+  `http://`; never on the five interior pages.
+- **Weight:** 134,398 → 136,707 bytes excluding images. 16,893 bytes of
+  headroom.
+
+### Discrepancy found by looking, which reasoning would have missed
+
+Under `forced-colors: active` the shutters are repainted in the user's Canvas
+colour. On the default Windows high-contrast themes that is white — the same
+white the page itself becomes. The sequence stops being a CRT and becomes *the
+top and bottom of the page silently missing for half a second*, with the beam
+and the scanlines both forced to invisible, so nothing on screen explains why.
+
+Every automated check passed: the animations ran, the timings were right, the
+transforms were correct. Only the screenshot showed it. `boot.js` now declines
+to run under `forced-colors`, on the same grounds as reduced motion — someone
+who has asked the OS to strip decoration to legible colour is not the audience
+for a power-on sequence — with a CSS rule as a safety net.
+
+### Rejected
+
+- **Keeping the dither as a final settle phase after the raster opens.** It
+  would layer two boot ideas inside a 900ms budget, and under the scanlines and
+  bloom at that point the dither is not legible anyway. The CRT should be one
+  idea, clearly.
+- **Widening the boot to all six pages** so that "first load" is literally true
+  for someone arriving on a deep link. Once-per-session gating means it would
+  still be one boot per visit, so the cost is not six boots — but it would put
+  a 600ms decorative curtain in front of someone who followed a link straight
+  to the booking page for information. Theatre belongs on the front door. Home
+  page only, unchanged.
+- **A hard white flash at the strike.** Authentic to some tubes, and the wrong
+  call on a site this dark: it would have dominated the sequence and pushed the
+  luminance swing toward the threshold above for no gain. The bloom peaks at
+  12% white over a #040404 page instead.
+
+### A note on the test harness, not the site
+
+Two pages failed the keyboard audit during this change and neither loads
+`boot.js`. Both embed cross-origin iframes — nine Spotify players on `tip.html`,
+a Canva frame on `boeken.html` — and the audit's focus-stop count swung
+11/20/27/29 run to run while the menu intermittently reported as not opening.
+
+It was the harness, not the site: the audit tabbed into an embed first, so the
+browser's real focus was inside a cross-origin frame, and focusing the trigger
+from main-frame script does not reliably bring it back, so the Enter went to
+the player. With the page settled the menu opens **6/6**. The harness now runs
+the menu test before the tab walk and waits for `readyState === 'complete'`;
+five consecutive runs pass on all six pages. Recorded because a flaky check
+that gets waved away once is a check that stops being worth running.
