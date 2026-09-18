@@ -672,6 +672,68 @@
 }
 
 /* ===========================================================================
+   11a. The boot overlay (reference 10.8.1, 8.2)
+   Added by js/boot.js, home page only, once per session. Nothing here exists
+   in the markup, so with JS off there is no overlay and the page is simply
+   there. The canvas carries the 32x32 dither; this is only its frame.
+   =========================================================================== */
+
+.fq-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 200;               /* above the grain, below nothing else */
+  pointer-events: none;
+  opacity: 1;
+}
+.fq-boot.is-out { opacity: 0; transition: opacity 180ms linear; }
+
+.fq-boot__grid {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+}
+
+/* The readout, in the preloader register: four corner ticks, the mark, and
+   the build reference. */
+.fq-boot__readout {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  inline-size: min(220px, 52vw);
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fq-space-5);
+}
+.fq-boot__bracket {
+  position: absolute;
+  inline-size: var(--fq-bracket-size);
+  block-size: var(--fq-bracket-size);
+  border-color: var(--fq-text-decorative);
+  border-style: solid;
+  border-width: 0;
+}
+.fq-boot__bracket[data-c="tl"] { inset-block-start: 0; inset-inline-start: 0; border-block-start-width: 1px; border-inline-start-width: 1px; }
+.fq-boot__bracket[data-c="tr"] { inset-block-start: 0; inset-inline-end: 0;   border-block-start-width: 1px; border-inline-end-width: 1px; }
+.fq-boot__bracket[data-c="bl"] { inset-block-end: 0;   inset-inline-start: 0; border-block-end-width: 1px;   border-inline-start-width: 1px; }
+.fq-boot__bracket[data-c="br"] { inset-block-end: 0;   inset-inline-end: 0;   border-block-end-width: 1px;   border-inline-end-width: 1px; }
+
+.fq-boot__logo { display: block; inline-size: 56px; block-size: auto; }
+.fq-boot__ref {
+  color: var(--fq-text-quiet);
+  text-transform: uppercase;
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-legend);
+  letter-spacing: var(--fq-track-open);
+  line-height: var(--fq-leading-solid);
+}
+
+/* ===========================================================================
    11. The grain host (reference 11.4)
    grain.js mounts the layer inside this. The host never moves and never
    repaints; it is the clipping viewport.
