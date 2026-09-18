@@ -770,8 +770,35 @@ back.
   on the skip link, and a click on a nav link navigates.
 - **Measured:** ~800ms from navigation start to a clear page against a 900ms
   budget; skip clears it in 10ms; absent under `prefers-reduced-motion` with
-  `document.getAnimations()` at 0; once per session over both `file://` and
-  `http://`; never on the five interior pages.
+  `document.getAnimations()` at 0; never on the five interior pages.
+
+### The once-per-session gate was wrong, and was reported as "it does not work"
+
+Shipped, the boot was gated on `sessionStorage`. That was a defect in practice
+and the live site is how it surfaced: **`sessionStorage` lives for the life of
+the tab**, so once the sequence had played, refreshing the home page never
+showed it again. Reloading a page and seeing nothing is indistinguishable from
+the thing being broken, which is exactly how it came back.
+
+The gate's real purpose was never "once per session" — `boot.js` only loads on
+`index.html`, so the five other pages could not replay it anyway. Its only job
+was to stay quiet while someone moves around the site. Two signals say that
+directly, and it needs both:
+
+- **`document.referrer`** distinguishes an arrival from an internal link.
+  Measured: a typed URL gives `""`, clicking Home from `over.html` gives a
+  same-origin referrer.
+- **`performance.getEntriesByType('navigation')[0].type`** distinguishes a
+  refresh and a Back from an ordinary navigation. The referrer alone is not
+  enough, because **a refresh keeps whatever referrer the original navigation
+  had** — reach Home by clicking it in the nav, press F5, and the referrer
+  still says `over.html`. Whether a refresh replays the boot should not depend
+  on how you first got to the page.
+
+So: `back_forward` never plays, `reload` always plays, and an ordinary
+navigation plays unless it came from this origin. Eleven cases verified —
+typed URL, F5, F5 again, click out, click Home, Back, external link, F5 after
+arriving via the nav, reduced motion, forced colours, interior pages.
 - **Weight:** 134,398 → 136,707 bytes excluding images. 16,893 bytes of
   headroom.
 

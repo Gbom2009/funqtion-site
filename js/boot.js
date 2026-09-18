@@ -26,7 +26,8 @@
    Rules this obeys (revise brief section 1):
      - never fakes a delay: the overlay is ADDED by JS over already-rendered
        content, so with JS off or broken there is simply no overlay
-     - once per session via sessionStorage, not once per navigation
+     - plays on arrival, including a refresh; stays out of the way during
+       internal navigation (see the referrer check below)
      - skippable by any key, pointer, wheel or touch
      - absent entirely under prefers-reduced-motion, not shortened
      - total runtime under 900ms
@@ -36,8 +37,6 @@
 
 (function () {
   'use strict';
-
-  var KEY = 'fq-booted';
 
   /* The sequence, in ms from the moment the overlay is inserted. Kept in one
      place so the shape of the thing is readable without tracing keyframes. */
@@ -63,12 +62,37 @@
     // legible colour is not the audience for a power-on sequence.
     if (window.matchMedia('(forced-colors: active)').matches) return;
 
-    // Once per session. Six pages must not replay it six times.
+    // Not while you are browsing the site. The previous version gated this on
+    // sessionStorage, which was wrong in practice: sessionStorage lives for
+    // the life of the TAB, so once it had played, refreshing the home page
+    // never showed it again. Reloading the page and seeing nothing is
+    // indistinguishable from it being broken, and that is exactly how it was
+    // reported.
+    //
+    // What the gate was actually for was not replaying the sequence as
+    // someone moves around the site. The referrer says that directly: if this
+    // load came from one of our own pages, it is internal navigation, so stay
+    // out of the way. Typing the address, refreshing, a bookmark, or a link
+    // from anywhere else is an arrival, and an arrival is what a power-on is
+    // for. Measured: typed URL and F5 both give an empty referrer, clicking
+    // Home from over.html and the Back button both give a same-origin one.
+    //
+    // The referrer alone is not enough, because a refresh keeps whatever
+    // referrer the original navigation had: land on Home by clicking it in
+    // the nav, then press F5, and the referrer still says over.html, so the
+    // boot would stay silent on an explicit refresh. Whether a refresh
+    // replays should not depend on how you first got to the page. So ask the
+    // Navigation Timing API what kind of navigation this actually is, and let
+    // the referrer decide only the ordinary-navigation case.
     try {
-      if (sessionStorage.getItem(KEY)) return;
-      sessionStorage.setItem(KEY, '1');
+      var nav = (performance.getEntriesByType('navigation')[0] || {}).type;
+      if (nav === 'back_forward') return;      // returning through history
+      if (nav !== 'reload') {                  // a reload is always an arrival
+        var from = document.referrer;
+        if (from && new URL(from).origin === window.location.origin) return;
+      }
     } catch (e) {
-      return;                    // private mode with storage blocked: skip it
+      /* no Navigation Timing, or an unparseable referrer: play it */
     }
 
     var host = document.createElement('div');
