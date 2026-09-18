@@ -25,12 +25,12 @@
   </a>
 
   <nav class="fq-topnav" aria-label="Hoofdnavigatie">
-    <a class="fq-topnav__link" href="index.html" aria-current="page">Home</a>
-    <a class="fq-topnav__link" href="over.html">Over ons</a>
-    <a class="fq-topnav__link" href="feesten.html">Feesten</a>
-    <a class="fq-topnav__link" href="boeken.html">Boeken</a>
-    <a class="fq-topnav__link" href="bieden.html">Wat wij bieden</a>
-    <a class="fq-topnav__link" href="tip.html">Muziek aanrader</a>
+    <a class="fq-topnav__link" href="index.html" aria-current="page"><span class="fq-topnav__swap"><span class="fq-topnav__t">Home</span><span class="fq-topnav__t" aria-hidden="true">Home</span></span></a>
+    <a class="fq-topnav__link" href="over.html"><span class="fq-topnav__swap"><span class="fq-topnav__t">Over ons</span><span class="fq-topnav__t" aria-hidden="true">Over ons</span></span></a>
+    <a class="fq-topnav__link" href="feesten.html"><span class="fq-topnav__swap"><span class="fq-topnav__t">Feesten</span><span class="fq-topnav__t" aria-hidden="true">Feesten</span></span></a>
+    <a class="fq-topnav__link" href="boeken.html"><span class="fq-topnav__swap"><span class="fq-topnav__t">Boeken</span><span class="fq-topnav__t" aria-hidden="true">Boeken</span></span></a>
+    <a class="fq-topnav__link" href="bieden.html"><span class="fq-topnav__swap"><span class="fq-topnav__t">Wat wij bieden</span><span class="fq-topnav__t" aria-hidden="true">Wat wij bieden</span></span></a>
+    <a class="fq-topnav__link" href="tip.html"><span class="fq-topnav__swap"><span class="fq-topnav__t">Muziek aanrader</span><span class="fq-topnav__t" aria-hidden="true">Muziek aanrader</span></span></a>
   </nav>
 
   <button type="button" class="fq-menu-trigger" aria-expanded="false" aria-controls="fq-menu">
@@ -79,16 +79,22 @@
 
 <main id="main">
 
-  <section class="fq-section fq-grid fq-grid--padded" style="padding-block:0">
-    <div class="fq-cell fq-hero" style="--col-span:9; --col-span-m:12">
-      <img class="fq-hero__mark" src="img/logo.svg" width="168" height="168"
+  <section class="fq-section fq-grid fq-grid--padded fq-hero-section" style="padding-block:0">
+    <div class="fq-cell fq-hero-rail" style="--col-span:3; --col-span-m:12">
+      <p class="fq-label">01 / Index</p>
+    </div>
+
+    <div class="fq-cell fq-hero" style="--col-start:4; --col-span:6; --col-start-m:auto; --col-span-m:12">
+      <img class="fq-hero__mark" src="img/logo.svg" width="240" height="240"
            alt="Logo van Team Funqtion: de letters TF in oranje en wit">
       <h1 class="fq-hero__title">Team Funqtion</h1>
       <p class="fq-hero__descriptor">
         <span class="fq-cursor fq-cursor--live" aria-hidden="true"></span>
         Allround Dj's
       </p>
+    </div>
 
+    <div class="fq-cell" style="--col-span:12">
       <dl class="fq-hero__meta">
         <div class="fq-rule-left">
           <dt class="fq-label" style="margin:0">Basis</dt>
@@ -191,8 +197,11 @@
   </div>
 </footer>
 
+<div class="fq-bg-host" id="fq-bg" aria-hidden="true"></div>
 <div class="fq-grain-host" id="fq-grain" aria-hidden="true"></div>
 
+<script src="js/boot.js"></script>
+<script src="js/bg.js"></script>
 <script src="js/menu.js"></script>
 <script src="js/grain.js"></script>
 </body>
