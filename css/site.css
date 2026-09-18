@@ -8,17 +8,31 @@
    1. Home hero
    =========================================================================== */
 
+.fq-hero-section { align-content: center; min-block-size: calc(100svh - 73px); }
+
+/* The hero is centred on the grid's TRUE centre line: it occupies columns
+   4 to 9 of twelve, so its midpoint is the page's midpoint. Centring by
+   text-align alone would float the mark in space; placing it on the lattice
+   and pinning the furniture to the edges keeps it an instrument panel.
+   (revise brief section 3) */
 .fq-hero {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  min-block-size: calc(100svh - 73px);   /* viewport less the sticky top bar */
-  padding-block: var(--fq-space-20) var(--fq-space-15);
+  align-items: center;
+  text-align: center;
+  padding-block: var(--fq-space-10) var(--fq-space-15);
+}
+
+/* Corner furniture stays pinned left, so the axis reads as deliberate. */
+.fq-hero-rail { align-self: start; padding-block-start: var(--fq-space-10); }
+@media screen and (max-width: 767px) {
+  .fq-hero-rail { padding-block-start: var(--fq-space-8); }
+  .fq-hero { padding-block: var(--fq-space-5) var(--fq-space-10); }
 }
 
 .fq-hero__mark {
   display: block;
-  inline-size: clamp(88px, 16vw, 168px);
+  inline-size: clamp(120px, 20vw, 240px);
   block-size: auto;
   margin-block-end: var(--fq-space-8);
 }
@@ -32,12 +46,14 @@
   font-weight: 400;
   line-height: var(--fq-leading-hero);
   letter-spacing: var(--fq-track-display);
+  text-wrap: balance;
 }
 
 .fq-hero__descriptor {
   margin: var(--fq-space-4) 0 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--fq-space-3);
   color: var(--fq-text-dim);
   text-transform: uppercase;
@@ -47,11 +63,14 @@
   line-height: var(--fq-leading-solid);
 }
 
+/* Variant A: the datasheet stays a left-aligned bottom rail. */
 .fq-hero__meta {
-  margin-block-start: var(--fq-space-10);
+  margin: var(--fq-space-15) 0 0;
   display: flex;
   flex-wrap: wrap;
   gap: var(--fq-space-8);
+  border-block-start: var(--fq-rule);
+  padding-block-start: var(--fq-space-5);
 }
 
 /* ===========================================================================
