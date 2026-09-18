@@ -381,7 +381,29 @@
 
 /* The desktop inline nav. Below 767px the dialog menu is the only nav. */
 .fq-topnav { display: flex; align-items: center; gap: var(--fq-space-5); }
+/* Mask-and-swap. It borrows the full-screen menu's mask vocabulary, but it is
+   not the same move: .fq-menu__mask REVEALS one label rising from translateY
+   (110%) to 0, while this SWAPS a two-copy column up by exactly half its
+   height, so the label leaves and its duplicate arrives. The <a> is the mask,
+   a fixed one-line box. The box never moves, so there is no layout shift.
+   (revise brief section 4)
+
+   overflow: clip, not hidden. Both clip the second copy, but `hidden` makes
+   the link a scroll container, and a clipped-but-rendered duplicate inside a
+   scroll container is something find-in-page will scroll to: measured, Ctrl+F
+   on a nav word left the mask parked at scrollTop 11 showing the wrong copy,
+   with no hover to reset it. `clip` cannot scroll at all. `hidden` is kept as
+   the preceding declaration so a browser without `clip` still masks.
+
+   Not clip-path: inset(0), which also stops the scrolling but clips the
+   element's own outline, silently deleting the focus ring. getComputedStyle
+   still reported `solid 2px #f68712` with nothing on screen; only the
+   screenshot caught it. */
 .fq-topnav__link {
+  display: block;
+  overflow: hidden;
+  overflow: clip;
+  block-size: var(--fq-size-legend);      /* exactly one line, solid leading */
   color: var(--fq-text-dim);
   text-decoration: none;
   text-transform: uppercase;
@@ -389,20 +411,25 @@
   line-height: var(--fq-leading-solid);
   transition: color var(--fq-dur-snap) ease;
 }
-.fq-topnav__link:hover { color: var(--fq-text); }
-.fq-topnav__link[aria-current="page"] { color: var(--fq-text-strong); }
-/* The current-page marker is a 4x8px border triangle, not a coloured word.
-   One piece of state, one small accent mark. (reference 8.3.3) */
-.fq-topnav__link[aria-current="page"]::before {
-  content: "";
-  display: inline-block;
-  inline-size: 0; block-size: 0;
-  border-block-start: 4px solid transparent;
-  border-block-end: 4px solid transparent;
-  border-inline-start: 4px solid var(--fq-accent);
-  margin-inline-end: 4px;
-  vertical-align: middle;
+.fq-topnav__swap { display: flex; flex-direction: column; }
+.fq-topnav__t {
+  display: block;
+  block-size: var(--fq-size-legend);
+  line-height: var(--fq-leading-solid);
+  flex: 0 0 auto;
 }
+
+/* Luminance only. The accent is the current-page marker's job in this bar. */
+.fq-topnav__link:hover,
+.fq-topnav__link:focus-visible { color: var(--fq-text-strong); }
+
+/* The movement is the enhancement; the brightness above works without it. */
+@media (prefers-reduced-motion: no-preference) {
+  .fq-topnav__swap { transition: transform 160ms var(--fq-ease-machine); }
+  .fq-topnav__link:hover .fq-topnav__swap,
+  .fq-topnav__link:focus-visible .fq-topnav__swap { transform: translateY(-50%); }
+}
+
 @media screen and (max-width: 991px) { .fq-topnav { display: none; } }
 
 /* The menu trigger: two bars, no hamburger cliche beyond that. */
