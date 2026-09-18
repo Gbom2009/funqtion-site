@@ -440,3 +440,286 @@ artefacts in the laser beams or the dark gradients, which is where this would sh
 - **`animation-play-state: paused` on the grain under reduced motion.** Inoperative: the
   grain is WAAPI, not CSS. Handled properly in 3.4 instead.
 - **Adding `defer` to the scripts.** Both are already the last elements before `</body>`.
+
+---
+---
+
+# Revision pass: boot, a living background, a centred hero, a new nav hover
+
+A separate pass with a different brief. Where the refinement pass *removed* motion, this
+one adds a deliberate, visible motion system. Both are in this file because the tension
+between them is the interesting part, and section 0 of the revise brief asked for it to be
+argued rather than quietly resolved.
+
+Baseline at the start of this pass: **112,745 bytes** excluding images.
+At the end: **134,398 bytes** (131.2 KB), against a 150 KB budget — 19,202 bytes of
+headroom. 28,027 of those bytes (21%) are comments and blank lines; the code alone is
+103.9 KB. Gzipped, which is what GitHub Pages actually serves, the whole site is **35.2 KB**.
+
+## The tension with the last pass, and what I am and am not reinstating
+
+The refinement pass reverted motion three times, and those reverts still stand:
+
+- **§3, the 0.03s infinite flicker.** A 33Hz strobe. Not reinstated, not softened, not
+  revisited. Nothing in this pass loops faster than 200ms.
+- **§3, the marquee.** Reverted because WCAG 2.2.2 requires a pause control for anything
+  moving, automatic and longer than five seconds, and a pause control that works on touch
+  is a real component, not a hover state. That reasoning is why the scanline prototype
+  below was rejected too — it fails on the same criterion.
+- **§5, the accent on hover.** Reverted from four rules so the accent stays a marker rather
+  than a decoration. The new nav hover is luminance-only, and the accent in the top bar is
+  still doing exactly one job: marking the current page.
+
+**One revert I am arguing should be read differently.** §3 concluded that ambient
+background motion was not worth its cost. That conclusion was reached about *decorative*
+motion with no brief behind it. The client has now asked for the site to look alive, which
+changes the cost side of the trade, not the safety side. So the lattice below is new work
+built to the §3 safety rules — under 200ms, no single movement over five seconds, dead
+under `prefers-reduced-motion` — rather than a quiet reinstatement of anything reverted.
+The §3 reasoning is not being overturned; it is being applied.
+
+---
+
+## System 1: the boot sequence (chapter 10.8.1)
+
+**Kept.** A 32×32 power-on dissolve on the home page only.
+
+The reference: 1,024 tiles of `--darkest-hour` #0a0a0a over a #040404 body, each fading
+over 4ms, start times scattered randomly across a 500ms window. Not a curtain lifting; a
+dither that resolves, like a display settling after power-on.
+
+### Notes
+
+- **Verified the two greys really are six levels apart** by histogram on a real frame: the
+  overlay paints exactly `10` and the page is exactly `4`. The reference's claim holds.
+- **Canvas, not 1,024 divs, and the choice was measured, not assumed.** Benchmarked
+  in-browser: 1,024 DOM nodes with per-tile `transition-delay` cost 12.0ms to build;
+  one canvas with a `clearRect` per expiring cell cost 5.2ms to build and 0.3ms for all
+  1,024 clears. The reference ships the 1,024 divs as static markup on fifteen pages.
+- **The 4ms fade is not reproducible and reproducing it would be dishonest.** At 60fps a
+  frame is 16.7ms, so a 4ms tile fade is sub-frame — it cannot render as a fade on any
+  display. Clearing the cell when its start time passes is the faithful reading.
+- **It never fakes a delay.** The overlay is added by JS over content the browser has
+  already painted. With JS off or broken there is simply no overlay and no blank screen.
+- **Once per session, not once per navigation**, via `sessionStorage`. Verified over both
+  `file://` and `http://`: overlay on first load, absent on `over.html`, absent on the way
+  back to `index.html`.
+- **Measured:** 681ms from load to removal on a fresh session; cleared in 197ms on a
+  keypress; absent entirely under `prefers-reduced-motion`; absent on all five interior
+  pages.
+
+### Rejected
+
+- **Running it on all six pages.** Six boots per visit is a tax, not an identity.
+- **Shortening it under reduced motion instead of removing it.** The brief is explicit and
+  it is the right call: a shortened animation is still an animation.
+
+---
+
+## System 2: the living background — three prototypes, one kept
+
+The brief asked for at least three approaches, built rather than guessed, with the
+rejected ones documented. All three were built and measured.
+
+### Rejected: the scanline sweep
+
+A single hairline traversing the viewport top to bottom. The most legible "this is a
+display" signal of the three, and the one closest to the reference's CRT vocabulary.
+
+Rejected on WCAG 2.2.2. One traverse is a **single continuous movement lasting ~10s**,
+which is automatic, longer than five seconds, and therefore owes the user a pause control.
+That is the exact obligation that killed the marquee in §3 of the last pass, and the
+reason it was killed — a pause affordance that works honestly on touch is a real component
+— has not changed. Speeding the sweep up to duck under five seconds makes it a strobe.
+
+### Rejected: the VU-style signal rail
+
+A vertical level meter in the margin, segments rising and falling. Visually the strongest
+of the three by some distance.
+
+Rejected as dishonest. A level meter that is not driven by audio claims to measure
+something it is not measuring, on a site whose entire design language is instrumentation —
+part numbers, datasheet rows, `FQ-01`. Every other readout on this site is true. A fake
+one would undermine them all, and it would do it on a DJ duo's site, where a visitor has
+every reason to read a level meter as audio.
+
+### Kept: the idling lattice
+
+The same 32×32 grid as the boot dissolve, left alive at low duty. Three cells light every
+280ms to somewhere between #0a0a0a and #141414 and fade out again over 0.9–2.1s, positions
+random, brightness on a `sin` curve so there is no hard edge in or out. The display powers
+on, then it idles. Boot and idle share a grid deliberately, so they read as one machine
+rather than two effects.
+
+### Notes
+
+- **Nothing loops faster than 200ms.** Cells spawn every 280ms; each lives 900–2,100ms.
+  The rAF loop paints at 60fps, but that is a paint clock, not a movement rate — measured,
+  the worst single-pixel change **between two consecutive frames is 5 of 255 levels**, and
+  that worst case is a cell expiring at its `BASE` value of 4, which is the page colour
+  and therefore invisible on screen.
+- **The longest single movement is one cell's fade, ≤2.1s**, comfortably under the
+  five-second threshold, so WCAG 2.2.2 imposes no pause obligation. It is also
+  `aria-hidden` ambient texture carrying no information.
+- **`prefers-reduced-motion` is enforced in JS, with a live `change` listener.** A CSS
+  block cannot stop a rAF loop any more than `animation-duration` can stop a WAAPI
+  animation — the trap §3.4 of the last pass documented. Measured under `reduce` on all six
+  pages: `document.getAnimations()` returns **0** and the canvas diffs at **0.00%**.
+- **Luminance only, inside the grey ramp.** Peak #141414 against a #040404 page. No accent
+  anywhere near it, per the brief.
+- **Fixed host, canvas-painted, `z-index: -1`, `pointer-events: none`.** Scrolling never
+  repaints it and it never intercepts a click.
+- **Pauses on `visibilitychange`,** so it costs nothing in a background tab.
+- **5,255 bytes.**
+
+### The verification the brief called the hardest requirement
+
+Two real screenshots, three seconds apart, diffed:
+
+| page | pixels differing after 3s | max level delta |
+|---|---:|---:|
+| `index.html` | 2.64% | 16 |
+| `feesten.html` | 2.22% | 13 |
+| under `prefers-reduced-motion: reduce` | **0.00%** | 0 |
+
+With the content layers hidden so the background stands alone, 61.83% of pixels differ
+over the same interval. An amplified (×16) difference image shows roughly twenty-eight
+distinct lattice cells changed between the two frames, over the grain floor. It is not
+identical. It has not failed.
+
+---
+
+## System 3: the centred hero (chapters 7, 8.2)
+
+**Kept, variant A.** The logo and the name now sit on the grid's true centre line.
+
+Two variants were built and looked at:
+
+- **A — kept.** Mark and name centred in a 6-column cell starting at column 4; the section
+  number stays a left-aligned rail at column 1; the datasheet becomes a full-width bottom
+  rail under a hairline. Measured on a 1600px viewport, the title's centre is at exactly
+  **800px**. The page's asymmetric instrument furniture is preserved around a symmetric
+  centre, which is the point — centring the mark should not centre the whole layout.
+- **B — rejected.** Everything centred, including the section number and the datasheet.
+  It reads as a title card, not an index page, and it throws away the left rail that every
+  other page on the site uses to anchor its section number.
+
+### Notes
+
+- `min-block-size: calc(100svh - 73px)` with `align-content: center`. `svh`, not `vh`, so
+  the hero does not jump when a mobile browser's toolbar retracts.
+- `clamp(120px, 20vw, 240px)` on the mark, so it scales with the viewport and stops.
+- Checked at 390 / 768 / 1600. The datasheet wraps to two rows at 390 without overflow.
+
+---
+
+## System 4: the top-bar hover (chapters 10.11, 8.3)
+
+**Kept.** Mask-and-swap, the brief's recommended option, replacing a colour-only
+transition the brief fairly called invisible.
+
+Each of the 36 nav labels is a two-copy column inside a one-line mask. Hover and
+`:focus-visible` slide it up by exactly half its height over 160ms, so the label leaves and
+its duplicate arrives; the brightness step from `--fq-text-dim` to `--fq-text-strong` is
+the base layer underneath and works on its own, so the transform lives inside a
+`prefers-reduced-motion: no-preference` block.
+
+### Discrepancy with my own previous comment
+
+I first documented this as "the same idiom as `.fq-menu__label`". That is wrong, and
+reading the menu's CSS rather than trusting my note is what caught it: `.fq-menu__mask`
+**reveals** a single label rising from `translateY(110%)` to `0`. It never duplicates text.
+This is a *swap*, which is a different move with a different cost, and the comment now says
+so. The distinction matters because the duplication is where both defects below came from.
+
+### Two defects found before this landed
+
+- **The current-page triangle was on `.fq-topnav__t:first-child::before`,** so it would
+  have slid out of the mask along with the first copy on hover. It is on both copies now
+  and survives the swap.
+- **`overflow: hidden` made every nav link a scroll container** wrapped around a rendered
+  duplicate. Find-in-page scrolls to clipped text: forcing it left the mask parked at
+  `scrollTop` 11, showing the wrong copy, with no hover to reset it. `overflow: clip`
+  masks without creating a scroll box — measured, forced `scrollTop` goes 12 → 0 — and
+  `hidden` is kept as the preceding declaration so a browser without `clip` still masks.
+
+### Discrepancy: computed style passed a state that was visibly broken
+
+`clip-path: inset(0)` fixes the scrolling too, and was my first choice. It also clips the
+element's own outline and **silently deletes the focus ring**. `getComputedStyle` still
+reported `outline: solid 2px rgb(246, 135, 18)` on the focused link with nothing on screen
+at all. Only the screenshot caught it. Worth recording as a general point: an assertion
+against computed style is not a check that something is visible.
+
+### Rejected: the two-digit index
+
+The brief's second option — `02`, `03` rising in where the label rises out, matching the
+menu's numbering. Genuinely tempting: no duplicated text, so none of the costs below, and
+it adds the menu's numbering to a bar that lacks it. Built it and looked at it. It removes
+the word you are pointing at and leaves a visible hole in the bar, because `03` is a
+quarter the width of `FEESTEN` while the link box keeps the label's width. Screenshotted,
+compared, rejected.
+
+### Rejected: the drawing hairline
+
+The brief's fourth option. No duplication, no a11y cost, no selection cost — genuinely
+defect-free, and it looked fine. Rejected on two grounds: it is the most generic hover on
+the web, and a line under the hovered item competes directly with the accent triangle that
+marks the current page, which is the one thing in that bar that must stay unambiguous.
+
+### Known cost, accepted
+
+Two real text nodes mean drag-selecting the bar copies each label twice
+(`HOME HOME OVER ONS OVER ONS…`) and find-in-page counts two matches per nav word. Neither
+is visible and the accessible name is unaffected — the duplicate is `aria-hidden`, and
+Chrome's accessibility tree reports `FEESTEN`, once. `user-select: none` on the duplicate
+was tried and does not remove it from the selection string in Chrome. A `::after` with
+`content: attr(data-label)` does fix selection and find-in-page, but Chrome folds generated
+content into the accessible name, which turned it into `FEESTEN FEESTEN` — trading an
+invisible cost for a real one. Not worth it.
+
+### Measured
+
+Zero layout shift (46.2×11.0 at the same coordinates before and after), bar 65px both
+ways, 160ms, focus ring intact at 2px #f68712, keyboard and pointer identical. At 991px and
+below `.fq-topnav` is `display: none`, the menu trigger takes over, no link paints a box,
+and there is no horizontal overflow at 390, 768 or 991.
+
+---
+
+## Closing verification
+
+- **Render:** six pages × three widths. No broken images, no horizontal overflow, one `h1`
+  each, all four landmarks on every page, every image with written Dutch alt, no JS errors.
+- **Motion, no preference:** exactly two animations on the home page — a 420ms one-shot
+  lift on the hero title, and the grain at 3,000ms in `steps(6)`, one discrete move every
+  500ms. Plus the lattice's rAF loop, whose worst consecutive-frame delta is 5 of 255
+  levels. **Nothing loops faster than 200ms anywhere.**
+- **Motion, `reduce`:** `document.getAnimations()` returns 0 on all six pages, the lattice
+  canvas diffs at 0.00%, and the boot overlay never exists.
+- **Keyboard:** all six pages pass end to end. Skip link first, every focus stop has a
+  ring, 0 without, the menu opens, traps and closes on Escape.
+- **Weight:** 112,745 → 134,398 bytes excluding images, against 150 KB. 35.2 KB gzipped.
+- **Dutch copy:** every text node and every piece of attribute copy on all six pages was
+  extracted and diffed against the commit this pass started from. Five pages are
+  byte-identical. **One string was added, and it is the one thing on this list a reviewer
+  should look at:** `01 / Index` on the home page's new hero rail.
+
+  It is not in `CONTENT.md`, so it is flagged rather than buried. The reasoning: all five
+  interior pages already carry a `NN / Section` rail — `02 / Over ons`, `03 / Feesten`, and
+  so on — and the home page was the only one without. Centring the mark (system 3) created
+  the left rail that carries it, and that rail is precisely what makes variant A an index
+  page rather than a title card. The string invents no voice: `Index` already appears three
+  times on the page as a `.fq-label`, and the numbering is the site's own. If the client
+  would rather the home page stayed the exception, deleting the one `<p>` reverts it and
+  nothing else moves. No other text node, `alt`, or `aria-label` changed by a character.
+
+### Rejected, general
+
+- **Turning up the grain to satisfy "make it alive".** The brief forbids it and it would be
+  the wrong answer anyway: grain is texture, not movement, and cranking it degrades text
+  legibility to fake liveliness the lattice provides honestly.
+- **Putting the accent in the background.** Explicitly out of bounds, and the whole reason
+  the accent still reads as a marker.
+- **Minifying to buy back the 21% spent on comments.** It would need a build step, which
+  the brief forbids, and the site is 19 KB under budget and 35 KB over the wire.
