@@ -1,26 +1,27 @@
 /* ---------------------------------------------------------------------------
-   boot.js  -  the power-on dissolve, home page only
-   Modelled on TELETECH-EVENTS-DESIGN-REFERENCE.md chapter 10.8.1.
+   boot.js  -  the CRT power-on, home page only
 
-   The reference: a 32x32 grid of 1,024 tiles in --darkest-hour #0a0a0a over a
-   body of #040404 — six levels lighter, not a black curtain. Each tile fades
-   over 4ms with the 1,024 start times scattered randomly across a 500ms
-   window. "Not a curtain lifting; a faint dither that resolves, like a display
-   settling after power-on."
+   A cathode-ray tube coming to life, in the order the hardware does it:
 
-   Implementation choice, measured rather than assumed. Benchmarked in-browser:
+     1. Nothing. The heater is warming; the screen is dark.
+     2. The beam strikes with no deflection at all, so it paints a single
+        point at the centre of the tube.
+     3. Horizontal deflection ramps first, and the point stretches into a
+        bright hairline across the middle of the screen.
+     4. Vertical deflection follows, and the line opens into a full raster.
+        The page is what is behind it.
+     5. The phosphor overshoots, then settles. Scanlines fade with it.
 
-     1,024 DOM divs + per-tile transition-delay : 1,024 nodes, 12.0ms to build
-     one canvas, clearRect per expiring cell    :     1 node,  5.2ms to build,
-                                                  0.3ms for ALL 1,024 clears
+   This replaces the 32x32 dither dissolve documented in chapter 10.8.1. The
+   reference describes that dissolve as reading like "a CRT settling", which
+   is a different moment from a CRT starting: settling is what a tube does
+   after the raster is already open. The dither is in git history if it is
+   ever wanted back.
 
-   Canvas, therefore. The reference ships 1,024 hand-placed divs in static
-   markup on fifteen pages; the refinement log already called that out as
-   waste. One canvas does the same job for one node.
-
-   A note on the 4ms fade: at 60fps a frame is 16.7ms, so a 4ms tile fade is
-   sub-frame — it cannot render as a fade on any real display. Clearing the
-   cell when its start time passes is a faithful reproduction, not a shortcut.
+   The vocabulary is borrowed from the site's own grain rather than invented:
+   the scanline layer uses the same 5px horizontal pitch as #grained
+   (reference 11.1.3), so the boot and the permanent texture are the same
+   raster at different opacities.
 
    Rules this obeys (revise brief section 1):
      - never fakes a delay: the overlay is ADDED by JS over already-rendered
@@ -29,20 +30,38 @@
      - skippable by any key, pointer, wheel or touch
      - absent entirely under prefers-reduced-motion, not shortened
      - total runtime under 900ms
+     - nothing loops: every animation below runs exactly one iteration, and
+       the fastest of them is 210ms
    --------------------------------------------------------------------------- */
 
 (function () {
   'use strict';
 
-  var GRID = 32;                 // 32 x 32 = 1024 cells, as the reference
-  var SCATTER = 500;             // ms window the start times spread across
-  var HOLD = 120;                // ms the readout lingers after the last cell
-  var FADE = 180;                // ms the readout takes to leave
   var KEY = 'fq-booted';
+
+  /* The sequence, in ms from the moment the overlay is inserted. Kept in one
+     place so the shape of the thing is readable without tracing keyframes. */
+  var T = {
+    heater:  80,    // dark, before the beam strikes
+    strike: 210,    // point stretching into the hairline
+    open:   300,    // raster opening: the shutters retracting
+    settle: 640,    // everything faded
+    end:    700     // overlay removed
+  };
 
   function run() {
     // Reduced motion: no overlay at all. Not a shortened version.
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // Forced colours: no overlay either, and this one was found by looking
+    // rather than by reasoning. Under forced-colors the shutters are repainted
+    // in the user's Canvas colour, which on the default Windows high-contrast
+    // themes is white -- the same white the page itself becomes. The result is
+    // not a CRT: it is the top and bottom of the page silently missing for
+    // half a second, with a beam and scanlines that have been forced to
+    // invisible. Someone who has asked the OS to strip decoration down to
+    // legible colour is not the audience for a power-on sequence.
+    if (window.matchMedia('(forced-colors: active)').matches) return;
 
     // Once per session. Six pages must not replay it six times.
     try {
@@ -53,86 +72,88 @@
     }
 
     var host = document.createElement('div');
-    host.className = 'fq-boot';
+    host.className = 'fq-crt';
     host.setAttribute('aria-hidden', 'true');
-
-    var cv = document.createElement('canvas');
-    cv.className = 'fq-boot__grid';
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var w = window.innerWidth, h = window.innerHeight;
-    cv.width = Math.round(w * dpr);
-    cv.height = Math.round(h * dpr);
-    var cx = cv.getContext('2d');
-    if (!cx) return;             // no 2D context: no boot, page as normal
-    cx.scale(dpr, dpr);
-
-    // Paint the full dither: every cell six levels above the page colour.
-    var cw = w / GRID, ch = h / GRID;
-    cx.fillStyle = '#0a0a0a';
-    for (var y = 0; y < GRID; y++) {
-      for (var x = 0; x < GRID; x++) {
-        cx.fillRect(x * cw, y * ch, cw + 1, ch + 1);
-      }
-    }
-
-    // One random start time per cell, scattered across the window.
-    var cells = [];
-    for (var i = 0; i < GRID * GRID; i++) {
-      cells.push({ x: (i % GRID) * cw, y: ((i / GRID) | 0) * ch, t: Math.random() * SCATTER, done: false });
-    }
-
-    host.appendChild(cv);
-    host.insertAdjacentHTML('beforeend',
-      '<div class="fq-boot__readout">' +
-        '<span class="fq-boot__bracket" data-c="tl"></span>' +
-        '<span class="fq-boot__bracket" data-c="tr"></span>' +
-        '<span class="fq-boot__bracket" data-c="bl"></span>' +
-        '<span class="fq-boot__bracket" data-c="br"></span>' +
-        '<img class="fq-boot__logo" src="img/logo.svg" width="64" height="64" alt="">' +
-        '<span class="fq-boot__ref">FQ-25</span>' +
-      '</div>');
+    host.innerHTML =
+      '<div class="fq-crt__shutter" data-h="t"></div>' +
+      '<div class="fq-crt__shutter" data-h="b"></div>' +
+      '<div class="fq-crt__bloom"></div>' +
+      '<div class="fq-crt__beam"></div>' +
+      '<div class="fq-crt__scan"></div>';
     document.body.appendChild(host);
 
-    var start = performance.now();
-    var raf = 0;
+    var beam = host.querySelector('.fq-crt__beam');
+    var bloom = host.querySelector('.fq-crt__bloom');
+    var scan = host.querySelector('.fq-crt__scan');
+    var shutters = host.querySelectorAll('.fq-crt__shutter');
+
+    var anims = [];
+    function play(el, frames, opts) {
+      // element.animate() rather than CSS: the sequence is five overlapping
+      // phases with different delays, and holding that in one place in JS is
+      // honest about the ordering in a way five CSS classes would not be.
+      var a = el.animate(frames, opts);
+      anims.push(a);
+      return a;
+    }
+
+    // 2 + 3. The point, then the hairline. scaleX from a hair to full width;
+    // the Y scale stays at 1 because the line is already only 2px tall.
+    play(beam, [
+      { transform: 'translateY(-50%) scaleX(0.004)', opacity: 0, offset: 0 },
+      { transform: 'translateY(-50%) scaleX(0.004)', opacity: 1, offset: 0.13,
+        easing: 'cubic-bezier(0.14, 0.86, 0.37, 0.96)' },
+      { transform: 'translateY(-50%) scaleX(1)', opacity: 1, offset: 0.62 },
+      { transform: 'translateY(-50%) scaleX(1)', opacity: 0, offset: 1 }
+    ], { duration: T.settle - T.heater, delay: T.heater, fill: 'both' });
+
+    // 4. Vertical deflection. Each shutter collapses towards its own edge, so
+    // the raster opens outwards from the centre line the beam just drew.
+    for (var i = 0; i < shutters.length; i++) {
+      play(shutters[i], [
+        { transform: 'scaleY(1)' },
+        { transform: 'scaleY(0)' }
+      ], {
+        duration: 300, delay: T.open, fill: 'forwards',
+        easing: 'cubic-bezier(0.14, 0.86, 0.37, 0.96)'
+      });
+    }
+
+    // 5. Phosphor overshoot: bright as the beam strikes, gone by the settle.
+    play(bloom, [
+      { opacity: 0, offset: 0 },
+      { opacity: 1, offset: 0.22 },
+      { opacity: 0, offset: 1 }
+    ], { duration: T.settle - T.heater, delay: T.heater, fill: 'backwards' });
+
+    // The raster itself, fading as the tube stabilises.
+    play(scan, [
+      { opacity: 1, offset: 0 },
+      { opacity: 1, offset: 0.4 },
+      { opacity: 0, offset: 1 }
+    ], { duration: T.settle - T.strike, delay: T.strike, fill: 'backwards' });
+
     var finished = false;
+    var timer = 0;
 
     function teardown() {
       if (finished) return;
       finished = true;
-      if (raf) cancelAnimationFrame(raf);
-      host.classList.add('is-out');
-      window.removeEventListener('keydown', skip, true);
-      window.removeEventListener('pointerdown', skip, true);
-      window.removeEventListener('wheel', skip, true);
-      window.removeEventListener('touchstart', skip, true);
-      window.setTimeout(function () { host.remove(); }, FADE);
+      window.clearTimeout(timer);
+      for (var j = 0; j < anims.length; j++) { anims[j].cancel(); }
+      window.removeEventListener('keydown', teardown, true);
+      window.removeEventListener('pointerdown', teardown, true);
+      window.removeEventListener('wheel', teardown, true);
+      window.removeEventListener('touchstart', teardown, true);
+      host.remove();
     }
 
-    function skip() { teardown(); }
+    window.addEventListener('keydown', teardown, true);
+    window.addEventListener('pointerdown', teardown, true);
+    window.addEventListener('wheel', teardown, true, { passive: true });
+    window.addEventListener('touchstart', teardown, true, { passive: true });
 
-    window.addEventListener('keydown', skip, true);
-    window.addEventListener('pointerdown', skip, true);
-    window.addEventListener('wheel', skip, true, { passive: true });
-    window.addEventListener('touchstart', skip, true, { passive: true });
-
-    function frame(now) {
-      var elapsed = now - start;
-      for (var j = 0; j < cells.length; j++) {
-        var c = cells[j];
-        if (!c.done && elapsed >= c.t) {
-          cx.clearRect(c.x, c.y, cw + 1, ch + 1);
-          c.done = true;
-        }
-      }
-      if (elapsed < SCATTER) {
-        raf = requestAnimationFrame(frame);
-      } else {
-        cx.clearRect(0, 0, w, h);
-        window.setTimeout(teardown, HOLD);
-      }
-    }
-    raf = requestAnimationFrame(frame);
+    timer = window.setTimeout(teardown, T.end);
   }
 
   if (document.readyState === 'loading') {
