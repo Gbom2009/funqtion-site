@@ -672,6 +672,27 @@
 }
 
 /* ===========================================================================
+   11b. The idling lattice (revise brief section 2)
+   A fixed host with a canvas child, so scrolling never repaints it. Sits
+   behind every piece of content and above nothing. js/bg.js paints it.
+   =========================================================================== */
+
+.fq-bg-host {
+  position: fixed;
+  inset: 0;
+  z-index: -1;              /* behind all content, above the page colour */
+  overflow: hidden;
+  pointer-events: none;
+}
+.fq-bg__layer {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+}
+
+/* ===========================================================================
    11a. The boot overlay (reference 10.8.1, 8.2)
    Added by js/boot.js, home page only, once per session. Nothing here exists
    in the markup, so with JS off there is no overlay and the page is simply
