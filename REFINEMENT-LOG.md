@@ -1193,3 +1193,67 @@ speed and weight instead.
 
 **Weight** 149960 bytes, 100040 clear of the new 250KB cap. Render-blocking
 CSS 14721 bytes gzipped against the 30KB cap. Still two rAF loops.
+
+
+---
+
+# Follow-up: logo-based interpage transitions
+
+The mark now carries you between pages. Leaving the home page, the big
+centred logo flies up and shrinks into the top bar; coming back, it grows out
+of it. Between two interior pages the name sits on the same element in the
+same place, so the chrome holds still while the content changes underneath.
+
+## Cross-document view transitions, not a click handler
+
+**No JavaScript.** `@view-transition { navigation: auto; }` plus a
+`view-transition-name` on the mark is the whole implementation.
+
+The obvious alternative — intercept clicks, play an animation, then set
+`location.href` — was rejected outright. It **fakes a delay**, which is the
+one thing the boot sequence was explicitly built not to do: the animation
+would be added to navigation time rather than overlapping it. It also breaks
+middle-click and modified clicks, and leaves nothing on the Back button. The
+browser's own mechanism keeps the outgoing page on screen while the next one
+loads, so the transition costs no time at all, and a browser without it
+simply navigates.
+
+## Handing the name over with :has()
+
+A `view-transition-name` must be unique in a document or the whole transition
+is silently skipped — and the home page has two marks, the hero one and the
+top bar's.
+
+```css
+.fq-topbar__logo { view-transition-name: fq-mark; }
+body:has(.fq-hero__mark) .fq-topbar__logo { view-transition-name: none; }
+.fq-hero__mark { view-transition-name: fq-mark; }
+```
+
+`:has()` hands the name from the bar to the hero on the one page that has
+both, which keeps this entirely in CSS and touches no markup.
+
+## Reduced motion, with no JS and no override
+
+`@view-transition` sits inside `@media (prefers-reduced-motion: no-preference)`.
+Verified by listening for `pageswap` and `pagereveal` across a real
+navigation: **`swap:true|reveal:true`** with no preference,
+**`swap:false|reveal:false`** under `reduce`. Not an animation that is
+cancelled — a transition that is never created.
+
+## Checks
+
+| | |
+|---|---|
+| index → over, over → index, over → feesten, index → boeken | all settle with the bar mark at 32×32 @20,16, no leftover transition animations, no errors |
+| Refresh of index | boot still plays, overlay clears, no leftover transition |
+| Internal nav | boot does **not** play and the transition **does** — both halves of the contract at once |
+| Back button | lands correctly, hero present, no leftover transition, no boot |
+| `forced-colors` | navigates, mark visible, no errors |
+| `file://` | navigates normally; cross-document transitions need http(s), so it degrades to nothing |
+
+Six pages clean, keyboard passes end to end on all six, and under `reduce`
+`getAnimations()` is 0 with every canvas at 0.00% on all six.
+
+**Weight** 151945 bytes, 98055 clear of the 250KB cap. Render-blocking CSS
+15445 bytes gzipped against the 30KB cap. Still two rAF loops — this adds none.
