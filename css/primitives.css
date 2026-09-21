@@ -796,6 +796,31 @@
 }
 
 /* ===========================================================================
+   11c. The hero oscilloscope (js/scope.js, home page only)
+   Sits inside the hero section, behind its content. The section is the
+   positioning context; the canvas fills it and never intercepts a pointer.
+   =========================================================================== */
+
+.fq-hero-section { position: relative; }
+
+.fq-scope {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+.fq-scope__layer { display: block; inline-size: 100%; block-size: 100%; }
+
+/* The hero content sits above the trace. */
+.fq-hero-section > .fq-cell { position: relative; z-index: 1; }
+
+/* Decoration, and forced colours cannot render a phosphor trail sensibly. */
+@media (forced-colors: active) {
+  .fq-scope { display: none; }
+}
+
+/* ===========================================================================
    11. The grain host (reference 11.4)
    grain.js mounts the layer inside this. The host never moves and never
    repaints; it is the clipping viewport.
