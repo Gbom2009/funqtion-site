@@ -1057,3 +1057,82 @@ changing while the beam walks leaves the older pass offset from the newer one
 
 **Weight** 144,803 → 146,074 bytes: the richer trace costs 1,271 bytes of the
 headroom the previous pass freed, leaving 3,926 clear of 150,000.
+
+---
+
+# The weight budget, re-based
+
+The "under 150KB excluding images" rule has been raised to 250KB and joined by
+three caps that measure what a visitor actually experiences. The authority is
+now `funqtion/BUDGET.md` in the brief repo; this is the reasoning and the
+evidence behind it.
+
+## Why the old rule was the wrong measurement
+
+It counted raw source bytes, but Pages serves everything gzipped, so it was
+governing a number ~3.5× larger than anyone downloads. The practical effect
+showed up in this log twice: the way to satisfy it was to delete comments,
+which compress to almost nothing. The squeeze two passes ago cut **4 KB of
+raw comments and bought about 0.5 KB of real transfer** — documentation
+traded for a rounding error.
+
+Meanwhile the biggest single item on the home page was never in the budget at
+all.
+
+## What the page actually transfers
+
+| | transferred |
+|---|---:|
+| Google Fonts | **48.4 KB** |
+| all our HTML/CSS/JS | **28.1 KB** |
+| images on that page | 2.7 KB |
+| **total first load** | **79.2 KB** |
+
+The budgeted thing costs 28 KB. The unbudgeted font costs 48 KB — more than
+every line of code on the site put together.
+
+## Where 250KB comes from
+
+Measured on the deployed site, mobile viewport, Lighthouse's slow-4G profile
+(1.6 Mbps, 150 ms RTT) with 4× CPU throttling:
+
+| | slow 4G + 4× CPU | fast 4G |
+|---|---:|---:|
+| first contentful paint | 1220 ms | 432 ms |
+| DOMContentLoaded | 1534 ms | 697 ms |
+| load | 1695 ms | 720 ms |
+
+At 1.6 Mbps a KB costs about 5 ms. The "good" threshold for FCP is 1.8 s, so
+there is ~580 ms of margin — over 100 KB of gzipped headroom, which is more
+CSS than anyone would plausibly write. **Nothing measurable happens until
+roughly 350 KB raw.**
+
+250 is set deliberately below that. A budget exists to make weight something
+you justify; one set at the breaking point stops doing that job.
+
+## The caps that actually bite
+
+| | cap | now |
+|---|---|---|
+| Total, excluding images | 250 KB raw | 142.7 KB |
+| Render-blocking CSS | 30 KB gzipped | 13.9 KB |
+| First load | 150 KB transferred | 79 KB |
+| Continuous `rAF` loops | 2 | 2 |
+
+- **Render-blocking CSS** is the only thing delaying first paint; every script
+  is end-of-body and blocks nothing. Tightest cap relative to current use,
+  because it is the number that moves FCP.
+- **First load** is the honest end-to-end figure and the only cap covering
+  what the old rule excluded.
+- **Two `rAF` loops** is the real ceiling and is invisible to any byte budget.
+  `bg.js` and `scope.js` already paint every frame. A third would cost battery
+  and scroll smoothness on a low-end Android for almost no file size, so
+  adding one means removing one. This is the cap most likely to be the one
+  that actually stops a future feature.
+
+## The honest footnote
+
+Images are still excluded, and they are 1.21 MB — about 8× all the code. That
+exclusion is a convenience because they are lazy-loaded below the fold, not a
+claim that they are free. If this site ever feels slow, the fonts and the
+photos are the answer, and nothing in the source is.
