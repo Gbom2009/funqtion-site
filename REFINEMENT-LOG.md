@@ -1136,3 +1136,60 @@ Images are still excluded, and they are 1.21 MB — about 8× all the code. That
 exclusion is a convenience because they are lazy-loaded below the fold, not a
 claim that they are free. If this site ever feels slow, the fonts and the
 photos are the answer, and nothing in the source is.
+
+
+---
+
+# Follow-up: the startup, more eccentric
+
+Client ask: make the boot more eccentric and noticeable, now that the budget
+has room.
+
+Three additions, all inside the overlay. That constraint mattered: the
+obvious eccentric moves — a degauss wobble, a real vertical roll — need to
+displace the page itself, and a transform on an ancestor of `position: fixed`
+elements makes the top bar and the lattice host jump. Everything below fakes
+the same read from the overlay, where it cannot break layout.
+
+- **Vertical hold.** Two blanking bars roll down as the picture locks, the
+  second fainter and quicker, each with a bright retrace edge just above its
+  dark core — which is the part the eye actually reads as a rolling frame.
+  This is the eccentric bit; nothing else says "old display" as fast.
+- **Raster overshoot.** The shutters open past their resting size and settle
+  back, the way deflection does when it first locks, instead of stopping dead.
+- **A self-test mark.** `FQ-01` in the bottom-left gutter over the still-dark
+  screen. It is the part number the top bar already carries, so it invents no
+  copy. Centred first, which put it straight on top of the hero logo; moved
+  to where an instrument puts its status line.
+
+### The bug that looked right
+
+`translateY(130%)` on the roll bar. A translate percentage is relative to the
+element's **own height**, not its container, so a bar 16% of the screen tall
+travelled 130% of *itself* — 158px down a 760px viewport, a fifth of the way,
+then stopped. It still looked like something happening, which is why it would
+have shipped. The traverse is `100/14 + 1 = 714%` for a bar 14% tall; both
+bars are now the same height so one ratio covers them, and they differ by
+speed and weight instead.
+
+### Checks
+
+- **Every boot animation is one-shot.** Eight of them, all `iterations: 1`.
+  Nothing loops, and the two roll traverses are single 260ms and 200ms
+  movements.
+- **Flash safety.** Mean screen luminance sampled every 40ms across the
+  sequence rises monotonically 0.0010 → 0.1148 and settles at 0.0818. That
+  0.114 span is the dark screen becoming a lit page, not a flash: WCAG 2.3.1
+  needs a *pair* of opposing changes of ≥0.1 occurring more than three times a
+  second, and the largest opposing pair here is **0.033**, once.
+- **Runtime 860ms**, measured at 806ms of overlay life — inside the brief's
+  900ms rule. Worth being precise, because an earlier entry conflated this
+  with navigation-start-to-clear, which depends on load time and is not what
+  the rule governs.
+- Skip clears in 8ms. Absent under `prefers-reduced-motion` and
+  `forced-colors`, and on all five interior pages.
+- Six pages clean, keyboard passes end to end on all six, `getAnimations()` 0
+  and every canvas at 0.00% under `reduce`.
+
+**Weight** 149960 bytes, 100040 clear of the new 250KB cap. Render-blocking
+CSS 14721 bytes gzipped against the 30KB cap. Still two rAF loops.
