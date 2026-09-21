@@ -847,3 +847,136 @@ the player. With the page settled the menu opens **6/6**. The harness now runs
 the menu test before the tab walk and waits for `readyState === 'complete'`;
 five consecutive runs pass on all six pages. Recorded because a flaky check
 that gets waved away once is a check that stops being worth running.
+
+---
+
+# Follow-up: the index, made lively
+
+Client ask: remove the hero datasheet, and make the index eye-catching rather
+than useful. Answers to the questions that shaped it: abstract motion and big
+type plus a moving hero (not photos), accent loosened but still a highlight,
+motion noticeably bolder inside the existing safety floor, home page only.
+
+## The datasheet
+
+Removed. Only **Bezetting / 2 DJ's** was unique to it — the footer already
+carries Basis, Aarle-Rixtel NL and Geluid · Licht · Laser, so nothing else
+left the page. This is a deliberate cut of Dutch copy, requested directly.
+
+## 1. The hero oscilloscope
+
+**Kept.** An X-Y scope trace behind the mark: a beam walks a 3:2 Lissajous
+figure in 1.8s while the phase drifts a full turn over ~57s.
+
+It continues the CRT the boot sequence powers on — the tube warms up, and
+this is what it is showing. **Not a spectrum analyser or a VU meter:** the
+revision pass rejected one of those for claiming to measure audio it was not
+measuring, and that reasoning has not changed. A Lissajous figure claims
+nothing; it is what an X-Y scope draws when fed two tones, so it suits a page
+about music without pretending to react to any.
+
+### Two bugs found by looking, not by reasoning
+
+- **Fading the canvas in place bakes in a permanent haze.** `destination-out`
+  at a constant alpha multiplies 8-bit alpha by a factor, and once that
+  rounds to the same value it stops changing — so the oldest marks never
+  reach zero. With the phase drifting, the entire swept area stayed printed
+  at alpha 1–3 forever. The trail is now redrawn each frame from a
+  timestamped history, which makes residue impossible. Measured after 14s of
+  running: 1.46% of the canvas lit, all of it live tail.
+- **The accent head smeared into a dotted orange line,** because each frame's
+  dot was left behind in the decaying canvas. On a canvas cleared every
+  frame it is what it should be: one bright point.
+
+**Phosphor life is set equal to circuit time** so the whole figure is on
+screen at once, brightest at the head. Shorter, and it reads as a comet on an
+invisible path rather than an instrument — tried both.
+
+Accent use is the beam head only, one 2.3px dot, never the trail. Under
+`prefers-reduced-motion` it draws a single static frame and never runs (1.28%
+lit, 0.00% changed over three seconds). `forced-colors` hides it. Pauses
+off-screen and in a background tab.
+
+## 2. The title, oversized
+
+**Kept.** 13vw to an 11.5rem cap instead of 5.124vw to 6rem — 184px a line at
+1600px against 86px — with the hero cell taking all twelve columns. Only the
+index uses `--xl`; the other five pages stay documents rather than posters.
+
+Each word is masked separately and slides up, staggered 110ms — the
+`.fq-menu__mask` **reveal** idiom, not the top bar's swap, and deliberately
+so: a reveal needs one copy of the text, so none of the duplicate-text costs
+documented for the nav apply here.
+
+`primitives.css` puts the `fq-lift` clip-path wipe on every `.fq-hero__title`;
+it is switched off for this one, because a clip-path on the h1 crops the words
+mid-slide. One reveal per element.
+
+Verified at 390/768/1600: no horizontal overflow, the title's centre lands at
+exactly half the viewport at every width. The accessible name is still
+`TEAM FUNQTION` as one string — the whitespace text node between the masks
+carries the space — and `textContent` is still exactly `Team Funqtion`.
+
+## 3. The index rows
+
+**Kept.** Labels from a 1.75rem cap to 3.25rem. On hover and `:focus-visible`
+the number turns accent orange, the arrow brightens, number and label slide
+10px right, the arrow 12px, and an accent hairline wipes across the row's own
+top rule in 220ms. Colour is the base layer and works with no motion at all.
+0.00px layout shift.
+
+**This is where the accent is loosened.** Two thin marks on one row at a time,
+pointing at what is under the cursor, so it still reads as a highlight and the
+permanent accent markers keep their meaning. The drawing hairline was rejected
+for the top bar because it competed with the current-page triangle; nothing
+competes with it here.
+
+Rows arrive on scroll via a **scroll-driven CSS animation behind `@supports`,
+not an IntersectionObserver**. With JS doing the reveal, a script that fails
+to run leaves the whole index invisible; a browser without scroll timelines
+simply shows the rows.
+
+### Three things testing caught
+
+- **A stale rule silently won.** A pre-existing `:hover` rule further down the
+  file set the number to `--fq-text-strong` and beat the new accent rule on
+  source order. The computed colour said `rgb(240,240,240)` where the new rule
+  said orange. Removed.
+- **The accent hairline at 1px was invisible** across a row that wide, despite
+  painting the right colour — confirmed by cropping and sampling rather than
+  by trusting the computed style. 2px.
+- **Printing the home page lost the entire index list.** Nothing advances a
+  scroll timeline on paper, so every row stayed at the keyframe's opacity 0.
+  There were no print styles in the project at all before this; there is now a
+  guard. Worth noting the failure mode is silent — it only appears if you
+  actually print.
+
+Also verified no row is ever stuck invisible while on screen: the hero is
+`100svh`, so the list always begins below the fold, checked at 1400×2400,
+1400×4000, 390×1600 and 1400×700. Rows do re-hide if you scroll back up past
+them, which is inherent to a `view()` timeline and is why a full-page
+screenshot taken from the top renders them blank.
+
+## Closing verification
+
+- Six pages clean: no broken images, no horizontal overflow, one `h1` each,
+  all four landmarks, every image with Dutch alt, no JS errors.
+- Keyboard: all six pass end to end, 37 focus stops each, 0 without a ring.
+- Motion, no preference: 8 animations on the index — two word reveals and
+  five scroll-linked row reveals, all `iterations: 1`, plus the grain at one
+  step per 500ms. No loop under 200ms anywhere.
+- Motion, `reduce`: `document.getAnimations()` is **0 on all six pages** and
+  every canvas diffs at **0.00%**.
+- Dutch copy: unchanged except the requested datasheet removal.
+
+## The weight budget is now the binding constraint
+
+138,407 → **149,343 bytes** excluding images. Against 150,000 that is 657
+bytes of headroom; against 150 KiB (153,600) it is 4,257.
+
+This pass spent essentially all of it, and the comments were cut back twice to
+get there — the rationale that used to sit in the source now lives in this
+file, which does not count toward the budget. **The next feature of any size
+cannot fit without a decision:** minify (needs a build step, currently
+forbidden), raise the budget, or drop something. Flagging it rather than
+quietly shaving comments a third time.

@@ -49,22 +49,16 @@
   text-wrap: balance;
 }
 
-/* ---------------------------------------------------------------------------
-   The index title, oversized. Only the home page uses --xl: the other five
-   pages keep --fq-size-hero so they stay readable documents rather than
-   posters. 13vw against 5.124vw, and the cell is the full twelve columns so
-   the type has somewhere to go.
-   --------------------------------------------------------------------------- */
+/* Index title, oversized. Only the home page uses --xl; the other five keep
+   --fq-size-hero and stay documents rather than posters. */
 .fq-hero__title--xl {
   font-size: clamp(2.75rem, 0.5rem + 13vw, 11.5rem);
   line-height: 0.86;
 }
 
-/* Two masks, one per word. overflow: clip rather than hidden, for the same
-   reason as the nav: hidden would make each one a scroll container around
-   text that find-in-page can scroll to. The padding/margin pair gives the
-   clip box a little room below the baseline without moving the layout, so
-   the mask crops the slide rather than the letterforms. */
+/* One mask per word. clip, not hidden: hidden makes each a scroll container
+   around text find-in-page can scroll to (see the nav). The padding/margin
+   pair gives the clip box room below the baseline without moving layout. */
 .fq-hero__mask {
   display: block;
   overflow: hidden;
@@ -75,9 +69,8 @@
 .fq-hero__word { display: block; }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* primitives.css gives every .fq-hero__title the fq-lift clip-path wipe.
-     On this one the words do their own reveal, and a clip-path on the h1
-     would crop them mid-slide. One reveal per element, not two. */
+  /* primitives.css wipes every .fq-hero__title with fq-lift; here the words
+     reveal themselves, and a clip-path on the h1 crops them mid-slide. */
   .fq-hero__title--xl { animation: none; }
 
   .fq-hero__word {
@@ -162,27 +155,15 @@
 .fq-index-list__row:hover .fq-index-list__label,
 .fq-index-list__row:focus-visible .fq-index-list__label { color: var(--fq-text-strong); }
 
-/* ---------------------------------------------------------------------------
-   The index rows, made to react. This list only exists on the home page, so
-   none of the below touches the other five.
-
-   The accent is loosened here rather than everywhere: the row number goes
-   orange and an orange hairline wipes across the row's top rule. Both are
-   thin marks on one row at a time, so the colour still reads as a highlight
-   pointing at the thing under the cursor, not as decoration. The permanent
-   accent markers elsewhere keep their meaning.
-
-   The drawing hairline was rejected for the top bar because it competed with
-   the current-page triangle. Nothing competes with it here, and at this size
-   it has room to be the gesture rather than a decoration on one.
-   --------------------------------------------------------------------------- */
+/* The index rows, made to react. Home page only. Where the accent is
+   loosened: two thin marks on one row at a time, so it stays a highlight.
+   See REFINEMENT-LOG.md. */
 
 .fq-index-list__label { font-size: clamp(1.375rem, 0.6rem + 3.1vw, 3.25rem); }
 
 .fq-index-list__row { position: relative; }
 
-/* The wipe sits on the row's own top hairline. inset-block-start:-1px puts it
-   exactly over the border rather than beside it. */
+/* Sits exactly over the row's own top border, not beside it. */
 .fq-index-list__row::before {
   content: '';
   position: absolute;
@@ -239,11 +220,8 @@
   .fq-index-list__row:hover .fq-index-list__arrow,
   .fq-index-list__row:focus-visible .fq-index-list__arrow { transform: translateX(12px); }
 
-  /* Rows arrive as they scroll in. Scroll-driven CSS rather than an
-     IntersectionObserver on purpose: with JS doing the reveal, a script that
-     fails to run leaves the whole index invisible. Behind @supports, a
-     browser without scroll timelines simply shows the rows, which is the
-     correct fallback and costs nothing. */
+  /* Scroll-driven CSS, not an IntersectionObserver: JS that fails to run
+     would leave the whole index invisible. */
   @supports (animation-timeline: view()) {
     .fq-index-list__row {
       animation: fq-row-in linear both;
@@ -257,9 +235,8 @@
   }
 }
 
-/* A scroll timeline has nothing to advance it on paper, so the rows stay at
-   the keyframe's starting opacity and the entire index prints blank. Found
-   by printing the page, not by reading the rule. */
+/* Nothing advances a scroll timeline on paper, so the rows stay at the
+   keyframe's opacity 0 and the whole index prints blank. */
 @media print {
   .fq-index-list__row { animation: none !important; opacity: 1 !important; transform: none !important; }
 }

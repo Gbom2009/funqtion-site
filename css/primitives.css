@@ -797,8 +797,8 @@
 
 /* ===========================================================================
    11c. The hero oscilloscope (js/scope.js, home page only)
-   Sits inside the hero section, behind its content. The section is the
-   positioning context; the canvas fills it and never intercepts a pointer.
+   The hero section is the positioning context; the canvas fills it, sits
+   behind the content, and never intercepts a pointer.
    =========================================================================== */
 
 .fq-hero-section { position: relative; }
@@ -815,7 +815,7 @@
 /* The hero content sits above the trace. */
 .fq-hero-section > .fq-cell { position: relative; z-index: 1; }
 
-/* Decoration, and forced colours cannot render a phosphor trail sensibly. */
+/* Decoration; forced colours cannot render a phosphor trail. */
 @media (forced-colors: active) {
   .fq-scope { display: none; }
 }

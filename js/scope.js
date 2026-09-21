@@ -1,42 +1,24 @@
 /* ---------------------------------------------------------------------------
    scope.js  -  the hero oscilloscope, home page only
 
-   What is on the screen after the CRT in boot.js finishes powering on: an X-Y
-   oscilloscope trace. A beam walks a Lissajous figure, the phosphor behind it
-   decays, and the figure's phase drifts so the shape turns slowly.
+   What the CRT in boot.js is showing once it has powered on: an X-Y scope
+   trace. A beam walks a 3:2 Lissajous figure while the phase drifts, so the
+   shape turns slowly. Rationale and rejected alternatives: REFINEMENT-LOG.md.
 
-   Why this and not the obvious thing. A spectrum analyser or a VU meter would
-   be the cliche for a DJ site, and the revision pass already rejected one on
-   the grounds that a level meter not driven by audio claims to measure
-   something it is not. A Lissajous figure claims nothing: it is a test
-   pattern, the thing a scope shows when you want to see the instrument
-   itself. It is also literally what an X-Y scope draws when you feed it two
-   tones, so it belongs on a page about music without pretending to react to
-   any.
-
-   Constraints:
-     - no loop faster than 200ms: the beam is a smooth curve, not a flicker.
-       Measured, the largest change to any single pixel between two
-       consecutive frames is small and gradual; nothing switches state.
-     - WCAG 2.2.2: every visible mark is a phosphor segment that fades out in
-       about 1.2s, so no single movement lasts anywhere near five seconds and
-       no pause affordance is owed. Same reasoning as the idling lattice.
-     - prefers-reduced-motion: the beam does not run. One static frame of the
-       figure is drawn instead, so the hero is still composed rather than
-       empty, and nothing moves at all.
+     - nothing loops faster than 200ms; the beam is a smooth curve.
+     - WCAG 2.2.2: every mark fades within one circuit (1.8s), so no single
+       movement approaches five seconds. Same reasoning as the lattice.
+     - prefers-reduced-motion draws one static frame and never runs.
      - pauses off-screen and in a background tab.
-     - the accent is the beam head only: one bright point, never the trail.
+     - the accent is the beam head only, never the trail.
    --------------------------------------------------------------------------- */
 
 (function () {
   'use strict';
 
-  // The phosphor lives exactly as long as one circuit takes, so the whole
-  // figure is on screen at all times: brightest at the head, dimmest just
-  // before the beam catches its own tail. Shorter than the circuit and you
-  // see a comet on an invisible path, which reads as an arc rather than as
-  // an instrument. Both numbers stay well under the five seconds that would
-  // oblige a pause control.
+  // Phosphor life == circuit time, so the whole figure is always on screen,
+  // brightest at the head. Shorter and it reads as a comet on an invisible
+  // path. Both stay well under the five seconds that would owe a pause.
   var CYCLE = 1800;     // ms for the beam to walk the figure once
   var TAIL_MS = 1800;   // how long a phosphor mark stays lit
   var DRIFT = 0.00011;  // radians per ms: a full turn of the figure in ~57s
@@ -102,13 +84,11 @@
         trail.push({ x: p[0], y: p[1], t: t - dt * (1 - i / steps) });
       }
 
-      // Drop marks older than the phosphor's life. Redrawing the trail from
-      // this history every frame, rather than fading the canvas in place, is
-      // deliberate: a destination-out fade multiplies 8-bit alpha by a
-      // constant, which stops changing once it rounds to the same value, so
-      // the oldest marks never reach zero and the figure slowly bakes a
-      // permanent haze into the canvas as the phase drifts. Measured, that
-      // residue sat at alpha 1-3 and never cleared.
+      // Redrawn from history each frame rather than fading the canvas in
+      // place: a destination-out fade multiplies 8-bit alpha by a constant
+      // and stops once it rounds to itself, so the oldest marks never reach
+      // zero and the figure bakes a permanent haze in as the phase drifts.
+      // Measured, that residue sat at alpha 1-3 and never cleared.
       var cut = t - TAIL_MS;
       while (trail.length && trail[0].t < cut) { trail.shift(); }
 
@@ -125,9 +105,8 @@
         cx.stroke();
       }
 
-      // The beam head: exactly one bright point, drawn fresh each frame onto
-      // a cleared canvas, so it cannot smear into a dotted orange line the
-      // way a decaying canvas made it. The only accent in this layer.
+      // Exactly one bright point, drawn onto a cleared canvas so it cannot
+      // smear into the dotted orange line a decaying canvas produced.
       if (trail.length) {
         var head = trail[trail.length - 1];
         cx.fillStyle = '#f68712';
