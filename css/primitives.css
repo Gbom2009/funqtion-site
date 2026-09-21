@@ -751,6 +751,57 @@
    boot and the texture that outlives it are the same scanline at different
    strengths. 2px of the 5 rather than 1, because a 1px band resamples to grey
    haze at 3x and this layer only exists for a third of a second. */
+/* The self-test mark, above the shutters so it reads against the still-dark
+   screen. Bottom-left on the page gutter, where an instrument puts its status
+   line -- centred put it straight on top of the hero logo. FQ-01 is the part
+   number the top bar already carries, so this invents no copy. */
+.fq-crt__ref {
+  position: absolute;
+  inset-block-end: var(--fq-space-8);
+  inset-inline-start: var(--fq-gutter, var(--fq-space-8));
+  color: var(--fq-text-strong);
+  font-family: var(--fq-font-mono);
+  font-size: var(--fq-size-data);
+  font-weight: var(--fq-weight-light);
+  letter-spacing: var(--fq-track-open);
+  line-height: var(--fq-leading-solid);
+  opacity: 0;
+}
+
+/* Vertical-blanking bars. A dark band with a soft falloff and a bright
+   retrace edge just above its core, which is what the eye actually reads as
+   a rolling picture. */
+.fq-crt__roll {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  /* Both bars are the same height so one travel ratio covers both. A
+     translateY percentage is relative to the element's OWN height, not the
+     container: at 14% of the host, clearing the full screen is
+     100/14 + 1 = 714%, not the 130% that looked right and moved the bar a
+     fifth of the way down. */
+  block-size: 14%;
+  transform: translateY(-100%);
+  will-change: transform;
+  background: linear-gradient(to bottom,
+              transparent 0%,
+              rgb(0 0 0 / 0.45) 34%,
+              rgb(0 0 0 / 0.72) 50%,
+              rgb(0 0 0 / 0.45) 66%,
+              transparent 100%);
+}
+.fq-crt__roll::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 32%;
+  block-size: 1px;
+  background: rgb(240 240 240 / 0.38);
+}
+/* The second bar differs by speed and weight, not size, so it shares the
+   travel ratio above. */
+.fq-crt__roll[data-r="2"] { opacity: 0.55; }
+
 .fq-crt__scan {
   position: absolute;
   inset: 0;

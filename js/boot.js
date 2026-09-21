@@ -23,11 +23,14 @@
   /* The sequence, in ms from the moment the overlay is inserted. Kept in one
      place so the shape of the thing is readable without tracing keyframes. */
   var T = {
-    heater:  80,    // dark, before the beam strikes
-    strike: 210,    // point stretching into the hairline
-    open:   300,    // raster opening: the shutters retracting
-    settle: 640,    // everything faded
-    end:    700     // overlay removed
+    heater:   60,   // dark, before the beam strikes
+    strike:  190,   // point stretching into the hairline
+    readout: 120,   // the self-test mark, over the still-dark screen
+    open:    230,   // raster opening: the shutters retracting, with overshoot
+    roll1:   400,   // first vertical-blanking bar rolling down
+    roll2:   600,   // second, fainter and quicker, as the picture locks
+    settle:  780,   // everything faded
+    end:     860    // overlay removed. Still inside the 900ms rule.
   };
 
   function run() {
@@ -85,10 +88,15 @@
       '<div class="fq-crt__shutter" data-h="b"></div>' +
       '<div class="fq-crt__bloom"></div>' +
       '<div class="fq-crt__beam"></div>' +
+      '<span class="fq-crt__ref">FQ-01</span>' +
+      '<div class="fq-crt__roll" data-r="1"></div>' +
+      '<div class="fq-crt__roll" data-r="2"></div>' +
       '<div class="fq-crt__scan"></div>';
     document.body.appendChild(host);
 
     var beam = host.querySelector('.fq-crt__beam');
+    var ref = host.querySelector('.fq-crt__ref');
+    var rolls = host.querySelectorAll('.fq-crt__roll');
     var bloom = host.querySelector('.fq-crt__bloom');
     var scan = host.querySelector('.fq-crt__scan');
     var shutters = host.querySelectorAll('.fq-crt__shutter');
@@ -116,13 +124,15 @@
     // 4. Vertical deflection. Each shutter collapses towards its own edge, so
     // the raster opens outwards from the centre line the beam just drew.
     for (var i = 0; i < shutters.length; i++) {
+      // Overshoot, not a clean stop: the raster opens past its resting size
+      // and settles back, the way deflection does when it first locks.
       play(shutters[i], [
-        { transform: 'scaleY(1)' },
-        { transform: 'scaleY(0)' }
-      ], {
-        duration: 300, delay: T.open, fill: 'forwards',
-        easing: 'cubic-bezier(0.14, 0.86, 0.37, 0.96)'
-      });
+        { transform: 'scaleY(1)', offset: 0,
+          easing: 'cubic-bezier(0.14, 0.86, 0.37, 0.96)' },
+        { transform: 'scaleY(0)', offset: 0.68 },
+        { transform: 'scaleY(0.055)', offset: 0.84, easing: 'ease-in-out' },
+        { transform: 'scaleY(0)', offset: 1 }
+      ], { duration: 240, delay: T.open, fill: 'forwards' });
     }
 
     // 5. Phosphor overshoot: bright as the beam strikes, gone by the settle.
@@ -138,6 +148,30 @@
       { opacity: 1, offset: 0.4 },
       { opacity: 0, offset: 1 }
     ], { duration: T.settle - T.strike, delay: T.strike, fill: 'backwards' });
+
+    // The self-test mark, over the screen while it is still dark. FQ-01 is
+    // the part number the top bar already carries, so this invents no copy.
+    play(ref, [
+      { opacity: 0, offset: 0 },
+      { opacity: 0.85, offset: 0.17 },
+      { opacity: 0.85, offset: 0.78 },
+      { opacity: 0, offset: 1 }
+    ], { duration: 350, delay: T.readout, fill: 'both' });
+
+    // Vertical hold. Two blanking bars roll down as the picture locks, the
+    // second fainter and quicker. This is the eccentric part: nothing else
+    // reads as an old display quite as immediately as a frame that will not
+    // sit still. Each traverse is a single 220ms/180ms movement, not a loop,
+    // and the whole thing is gone before the overlay is.
+    // 714% is the full traverse: see the note on .fq-crt__roll in the CSS.
+    play(rolls[0], [
+      { transform: 'translateY(-100%)' },
+      { transform: 'translateY(714%)' }
+    ], { duration: 260, delay: T.roll1, fill: 'both', easing: 'cubic-bezier(.4,0,.5,1)' });
+    play(rolls[1], [
+      { transform: 'translateY(-100%)', opacity: 0.55 },
+      { transform: 'translateY(714%)', opacity: 0.18 }
+    ], { duration: 200, delay: T.roll2, fill: 'both', easing: 'cubic-bezier(.35,0,.4,1)' });
 
     var finished = false;
     var timer = 0;
