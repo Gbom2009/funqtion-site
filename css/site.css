@@ -161,8 +161,108 @@
 }
 .fq-index-list__row:hover .fq-index-list__label,
 .fq-index-list__row:focus-visible .fq-index-list__label { color: var(--fq-text-strong); }
+
+/* ---------------------------------------------------------------------------
+   The index rows, made to react. This list only exists on the home page, so
+   none of the below touches the other five.
+
+   The accent is loosened here rather than everywhere: the row number goes
+   orange and an orange hairline wipes across the row's top rule. Both are
+   thin marks on one row at a time, so the colour still reads as a highlight
+   pointing at the thing under the cursor, not as decoration. The permanent
+   accent markers elsewhere keep their meaning.
+
+   The drawing hairline was rejected for the top bar because it competed with
+   the current-page triangle. Nothing competes with it here, and at this size
+   it has room to be the gesture rather than a decoration on one.
+   --------------------------------------------------------------------------- */
+
+.fq-index-list__label { font-size: clamp(1.375rem, 0.6rem + 3.1vw, 3.25rem); }
+
+.fq-index-list__row { position: relative; }
+
+/* The wipe sits on the row's own top hairline. inset-block-start:-1px puts it
+   exactly over the border rather than beside it. */
+.fq-index-list__row::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: -1px;
+  block-size: 2px;            /* 1px vanished at row width; still a hairline */
+  background: var(--fq-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.fq-index-list li:last-child .fq-index-list__row::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  block-size: 2px;
+  background: var(--fq-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.fq-index-list__num,
+.fq-index-list__label,
+.fq-index-list__arrow { will-change: transform; }
+
+.fq-index-list__arrow { display: inline-block; }
+
+/* Colour is the base layer and works with no motion at all. */
 .fq-index-list__row:hover .fq-index-list__num,
-.fq-index-list__row:hover .fq-index-list__arrow { color: var(--fq-text-strong); }
+.fq-index-list__row:focus-visible .fq-index-list__num { color: var(--fq-accent); }
+.fq-index-list__row:hover .fq-index-list__arrow,
+.fq-index-list__row:focus-visible .fq-index-list__arrow { color: var(--fq-text-strong); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fq-index-list__row::before,
+  .fq-index-list li:last-child .fq-index-list__row::after {
+    transition: transform 220ms var(--fq-ease-machine);
+  }
+  .fq-index-list__num,
+  .fq-index-list__label { transition: transform 180ms var(--fq-ease-machine),
+                                      color var(--fq-dur-snap) ease; }
+  .fq-index-list__arrow { transition: transform 180ms var(--fq-ease-machine),
+                                      color var(--fq-dur-snap) ease; }
+
+  .fq-index-list__row:hover::before,
+  .fq-index-list__row:focus-visible::before,
+  .fq-index-list li:last-child .fq-index-list__row:hover::after,
+  .fq-index-list li:last-child .fq-index-list__row:focus-visible::after { transform: scaleX(1); }
+
+  .fq-index-list__row:hover .fq-index-list__num,
+  .fq-index-list__row:focus-visible .fq-index-list__num,
+  .fq-index-list__row:hover .fq-index-list__label,
+  .fq-index-list__row:focus-visible .fq-index-list__label { transform: translateX(10px); }
+  .fq-index-list__row:hover .fq-index-list__arrow,
+  .fq-index-list__row:focus-visible .fq-index-list__arrow { transform: translateX(12px); }
+
+  /* Rows arrive as they scroll in. Scroll-driven CSS rather than an
+     IntersectionObserver on purpose: with JS doing the reveal, a script that
+     fails to run leaves the whole index invisible. Behind @supports, a
+     browser without scroll timelines simply shows the rows, which is the
+     correct fallback and costs nothing. */
+  @supports (animation-timeline: view()) {
+    .fq-index-list__row {
+      animation: fq-row-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+    @keyframes fq-row-in {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: none; }
+    }
+  }
+}
+
+/* A scroll timeline has nothing to advance it on paper, so the rows stay at
+   the keyframe's starting opacity and the entire index prints blank. Found
+   by printing the page, not by reading the rule. */
+@media print {
+  .fq-index-list__row { animation: none !important; opacity: 1 !important; transform: none !important; }
+}
 
 /* ===========================================================================
    3. Socials
