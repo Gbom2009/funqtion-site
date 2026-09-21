@@ -1224,7 +1224,11 @@ A `view-transition-name` must be unique in a document or the whole transition
 is silently skipped — and the home page has two marks, the hero one and the
 top bar's.
 
-
+```css
+.fq-topbar__logo { view-transition-name: fq-mark; }
+body:has(.fq-hero__mark) .fq-topbar__logo { view-transition-name: none; }
+.fq-hero__mark { view-transition-name: fq-mark; }
+```
 
 `:has()` hands the name from the bar to the hero on the one page that has
 both, which keeps this entirely in CSS and touches no markup.
