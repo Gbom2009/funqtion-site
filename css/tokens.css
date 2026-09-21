@@ -4,27 +4,18 @@
    Nothing else in the system reads a literal value.
    Naming: --fq-<layer>-<role>.
 
-   Four documented deviations from the reference (BUILD-BRIEF section 3):
-     1. The accent is orange #f68712, not blood red #c13243. Because the orange
-        clears AA on every surface here (8.2:1 on the page colour, measured),
-        the reference's two-token --digital-blood / --digital-blood-text
-        workaround is dropped: one accent token does every job.
-     2. Fonts are Google Fonts substitutes: JetBrains Mono for ProtoMono,
-        Archivo Black for LomoCopy LT Std.
-     3. No video anywhere.
-     4. Every accessibility fix in chapter 31 is taken, not optional.
+   Deviations from the reference (BUILD-BRIEF section 3): accent is orange
+   #f68712, not blood red, and clears AA everywhere (8.2:1 on the page
+   colour), so the reference's two-token workaround is dropped; fonts are
+   Google substitutes; no video; every chapter 31 a11y fix is taken.
    --------------------------------------------------------------------------- */
 
 :root {
   color-scheme: dark;
 
   /* === 1. Raw grey ramp (reference chapter 5), darkest to lightest ======== */
-  --fq-black:         #000000;
   --fq-page:          #040404;  /* the true page colour */
-  --fq-darkest-hour:  #0a0a0a;
-  --fq-midnight:      #0d0d0d;
   --fq-dusk:          #141414;
-  --fq-haze-grey:     #1e1e1e;
   --fq-hairline:      #363636;  /* the rule colour */
   --fq-machine-grey:  #6c6c6c;  /* 3.90:1 - rules and decoration ONLY, never text */
   --fq-quiet-grey:    #7a7a7a;  /* 4.78:1 on #040404, 4.61:1 on #0a0a0a - AA at body size */
@@ -50,7 +41,6 @@
   --fq-text-quiet:      var(--fq-quiet-grey);   /* 4.78:1 - the dimmest legal TEXT colour */
   --fq-text-decorative: var(--fq-machine-grey); /* 3.90:1 - rules, arrows, large display only.
                                                    Fails AA at body size: never use for small text. */
-  --fq-text-accent:     var(--fq-accent);
 
   /* === 5. Rules, brackets, focus ========================================== */
   --fq-rule-color:    var(--fq-hairline);
@@ -216,11 +206,10 @@ img::selection { background-color: transparent; }
 }
 
 /* --- Global reduced-motion contract ---------------------------------------
-   The reference honours prefers-reduced-motion nowhere (chapter 31). Here it
-   kills every CSS transition and transform reveal. It does NOT reach the
-   grain: that is a WAAPI element.animate() animation and CSS
-   animation-duration has no effect on it, so grain.js checks the query itself
-   and also listens for changes to it. */
+   Kills every CSS transition and transform reveal. It does NOT reach the
+   grain: CSS animation-duration cannot stop a WAAPI element.animate(), so
+   grain.js checks the query itself and listens for changes. Same for the
+   canvas layers in bg.js and scope.js. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {

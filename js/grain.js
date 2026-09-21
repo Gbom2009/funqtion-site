@@ -2,17 +2,13 @@
    grain.js  -  the animated film-grain overlay
    Adapted from TELETECH-EVENTS-DESIGN-REFERENCE.md chapter 11.4.
 
-   Bakes a few noise tiles to data URLs and drifts one oversized layer behind a
-   fixed clipping host, cycling tiles so the field genuinely changes frame to
-   frame rather than the same tile sliding around.
+   Bakes noise tiles to data URLs and drifts one oversized layer behind a fixed
+   clipping host, cycling tiles so the field changes frame to frame.
 
-   Three things this does that the original teletech.events grain does not:
-     - it respects prefers-reduced-motion, and mounts a single static tile
-       instead of animating (brief 3.4);
-     - it bakes the tile at devicePixelRatio so one mark stays one device pixel,
-       which is the fix for the haze the original works around by dropping the
-       whole overlay to 20% opacity on phones (reference 11.4, last tuning row);
-     - it injects no stylesheet and rewrites nothing on the host.
+   Unlike the original: it respects prefers-reduced-motion and mounts a static
+   tile instead (brief 3.4); it bakes at devicePixelRatio so one mark stays one
+   device pixel, fixing the haze the original works around with 20% opacity on
+   phones; and it injects no stylesheet.
 
    Classic script, not a module: the site must work from file://.
    --------------------------------------------------------------------------- */

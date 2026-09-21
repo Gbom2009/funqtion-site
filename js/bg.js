@@ -1,35 +1,18 @@
 /* ---------------------------------------------------------------------------
    bg.js  -  the idling lattice
-   The background layer the revise brief asks for: something visibly happening
-   behind the content.
+   A 32x32 grid left alive at low duty: a few cells per second light to
+   between #0a0a0a and #141414 and fade out, positions random. Same grid as
+   the boot, so they read as one machine. Chosen over a scanline sweep and a
+   VU-style rail, both built and measured -- see REFINEMENT-LOG.md.
 
-   What it is: the same 32x32 lattice the boot dissolve uses, left alive at low
-   duty. A few cells per second light to somewhere between #0a0a0a and #141414
-   and fade out again, positions random. The display powers on (boot.js), then
-   it idles. Boot and idle are deliberately the same grid so they read as one
-   machine rather than two effects.
-
-   Chosen over two other prototypes, both built and measured (see
-   REFINEMENT-LOG.md):
-     - a scanline sweep: one traverse is a single continuous movement lasting
-       ~10s, which triggers a WCAG 2.2.2 pause obligation. The marquee revert
-       in the last pass showed how hard that is to honour honestly on touch.
-     - a VU-style signal rail: the most visible of the three, and the most
-       dishonest. A level meter not driven by audio claims to measure something
-       it does not, on a site whose whole language is honest instrumentation.
-
-   The longest single movement here is one cell's fade, 0.9-2.1s, comfortably
-   under the five-second threshold, so no pause affordance is required by that
-   criterion. It is also aria-hidden ambient texture carrying no information.
-
-   Constraints honoured:
-     - nothing loops faster than 200ms: cells spawn every 280ms and each lives
-       900-2100ms
+     - nothing loops faster than 200ms: cells spawn every 280ms, live
+       900-2100ms. Longest single movement is one cell's fade, so WCAG 2.2.2
+       owes no pause control. aria-hidden texture carrying no information.
      - fixed host, canvas-painted, so scrolling never repaints it
-     - luminance only, inside the grey ramp. No accent anywhere near it.
-     - prefers-reduced-motion stops it dead, and because rAF is not CSS, that
-       is enforced in JS with a live change listener, not by a stylesheet
-     - pauses when the tab is hidden, so it costs nothing in a background tab
+     - luminance only. No accent anywhere near it.
+     - prefers-reduced-motion stops it dead, enforced in JS with a live change
+       listener because a stylesheet cannot stop a rAF loop
+     - pauses when the tab is hidden
    --------------------------------------------------------------------------- */
 
 (function () {

@@ -974,9 +974,41 @@ screenshot taken from the top renders them blank.
 138,407 → **149,343 bytes** excluding images. Against 150,000 that is 657
 bytes of headroom; against 150 KiB (153,600) it is 4,257.
 
-This pass spent essentially all of it, and the comments were cut back twice to
-get there — the rationale that used to sit in the source now lives in this
-file, which does not count toward the budget. **The next feature of any size
-cannot fit without a decision:** minify (needs a build step, currently
-forbidden), raise the budget, or drop something. Flagging it rather than
-quietly shaving comments a third time.
+### Resolved: 144,803 bytes, 5,197 spare
+
+Asked to make it fit properly rather than flag it, so two things were done,
+in this order and verified separately.
+
+**Dead code, 875 bytes.** `.fq-hero__meta` and `.fq-rule-left` were both
+orphaned when the datasheet came out, and five palette tokens
+(`--fq-black`, `--fq-darkest-hour`, `--fq-haze-grey`, `--fq-midnight`,
+`--fq-text-accent`) had no `var()` reference anywhere in the CSS, JS or
+markup. Confirmed by grep across all six pages before removing: a rule with
+no matching element and a custom property with nothing reading it cannot
+affect rendering.
+
+**Comments, 3,665 bytes.** The long narrative blocks in the three stylesheets
+and five scripts were condensed to the load-bearing "why" — the sentence that
+stops a bug being reintroduced — with the reasoning that was cut already
+present in this file. CSS+JS comment share went from 39–40% to 30%. Nothing
+was deleted outright that is not written down here.
+
+That second step was verified rather than trusted: the non-comment content of
+all eight files was hashed before and after, and **every hash matched**, so
+the comment pass provably changed zero code.
+
+| | bytes |
+|---|---:|
+| before | 149,343 |
+| dead code removed | −875 |
+| comments condensed | −3,665 |
+| **after** | **144,803** |
+
+5,197 bytes clear of 150,000, 8,797 clear of 150 KiB, 39.1 KB gzipped. Full
+audit re-run after both steps: six pages clean, keyboard passes end to end on
+all six, `document.getAnimations()` 0 and every canvas at 0.00% under
+`reduce`, no loop under 200ms.
+
+The underlying point still holds for next time: at 30% comments there is not
+another easy 10 KB in here. The next substantial feature needs a build step,
+a higher budget, or something removed.

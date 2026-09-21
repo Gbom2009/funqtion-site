@@ -97,15 +97,6 @@
   line-height: var(--fq-leading-solid);
 }
 
-/* Variant A: the datasheet stays a left-aligned bottom rail. */
-.fq-hero__meta {
-  margin: var(--fq-space-15) 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--fq-space-8);
-  border-block-start: var(--fq-rule);
-  padding-block-start: var(--fq-space-5);
-}
 
 /* ===========================================================================
    2. The numbered index list (home)

@@ -1,38 +1,20 @@
 /* ---------------------------------------------------------------------------
    boot.js  -  the CRT power-on, home page only
 
-   A cathode-ray tube coming to life, in the order the hardware does it:
-
-     1. Nothing. The heater is warming; the screen is dark.
-     2. The beam strikes with no deflection at all, so it paints a single
-        point at the centre of the tube.
-     3. Horizontal deflection ramps first, and the point stretches into a
-        bright hairline across the middle of the screen.
-     4. Vertical deflection follows, and the line opens into a full raster.
-        The page is what is behind it.
-     5. The phosphor overshoots, then settles. Scanlines fade with it.
-
-   This replaces the 32x32 dither dissolve documented in chapter 10.8.1. The
-   reference describes that dissolve as reading like "a CRT settling", which
-   is a different moment from a CRT starting: settling is what a tube does
-   after the raster is already open. The dither is in git history if it is
-   ever wanted back.
-
-   The vocabulary is borrowed from the site's own grain rather than invented:
-   the scanline layer uses the same 5px horizontal pitch as #grained
-   (reference 11.1.3), so the boot and the permanent texture are the same
-   raster at different opacities.
+   A tube coming to life in hardware order: heater warming (dark), the beam
+   striking undeflected (a point), horizontal deflection stretching it to a
+   hairline, vertical deflection opening the raster, then overshoot and
+   settle. Replaces chapter 10.8.1's dither, which the reference itself calls
+   "a CRT settling" -- a later moment than a CRT starting. Dither is in git
+   history. Scanlines reuse #grained's 5px pitch (reference 11.1.3).
 
    Rules this obeys (revise brief section 1):
-     - never fakes a delay: the overlay is ADDED by JS over already-rendered
-       content, so with JS off or broken there is simply no overlay
-     - plays on arrival, including a refresh; stays out of the way during
-       internal navigation (see the referrer check below)
+     - never fakes a delay: the overlay is ADDED over rendered content, so
+       with JS off or broken there is simply no overlay
+     - plays on arrival including a refresh, quiet during internal navigation
      - skippable by any key, pointer, wheel or touch
      - absent entirely under prefers-reduced-motion, not shortened
-     - total runtime under 900ms
-     - nothing loops: every animation below runs exactly one iteration, and
-       the fastest of them is 210ms
+     - under 900ms; nothing loops, every animation runs one iteration
    --------------------------------------------------------------------------- */
 
 (function () {
