@@ -32,7 +32,7 @@
 
 .fq-hero__mark {
   display: block;
-  inline-size: clamp(120px, 20vw, 240px);
+  inline-size: clamp(120px, 20vw, 300px);
   block-size: auto;
   margin-block-end: var(--fq-space-8);
 }
@@ -49,6 +49,40 @@
   text-wrap: balance;
 }
 
+/* Index title, oversized. Only the home page uses --xl; the other five keep
+   --fq-size-hero and stay documents rather than posters. */
+.fq-hero__title--xl {
+  font-size: clamp(2.75rem, 0.5rem + 13vw, 11.5rem);
+  line-height: 0.86;
+}
+
+/* One mask per word. clip, not hidden: hidden makes each a scroll container
+   around text find-in-page can scroll to (see the nav). The padding/margin
+   pair gives the clip box room below the baseline without moving layout. */
+.fq-hero__mask {
+  display: block;
+  overflow: hidden;
+  overflow: clip;
+  padding-block-end: 0.08em;
+  margin-block-end: -0.08em;
+}
+.fq-hero__word { display: block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* primitives.css wipes every .fq-hero__title with fq-lift; here the words
+     reveal themselves, and a clip-path on the h1 crops them mid-slide. */
+  .fq-hero__title--xl { animation: none; }
+
+  .fq-hero__word {
+    animation: fq-word-in 640ms var(--fq-ease-machine) both;
+    animation-delay: calc(var(--w, 0) * 110ms + 80ms);
+  }
+  @keyframes fq-word-in {
+    from { transform: translateY(105%); }
+    to   { transform: translateY(0); }
+  }
+}
+
 .fq-hero__descriptor {
   margin: var(--fq-space-4) 0 0;
   display: flex;
@@ -63,15 +97,6 @@
   line-height: var(--fq-leading-solid);
 }
 
-/* Variant A: the datasheet stays a left-aligned bottom rail. */
-.fq-hero__meta {
-  margin: var(--fq-space-15) 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--fq-space-8);
-  border-block-start: var(--fq-rule);
-  padding-block-start: var(--fq-space-5);
-}
 
 /* ===========================================================================
    2. The numbered index list (home)
@@ -120,8 +145,92 @@
 }
 .fq-index-list__row:hover .fq-index-list__label,
 .fq-index-list__row:focus-visible .fq-index-list__label { color: var(--fq-text-strong); }
+
+/* The index rows, made to react. Home page only. Where the accent is
+   loosened: two thin marks on one row at a time, so it stays a highlight.
+   See REFINEMENT-LOG.md. */
+
+.fq-index-list__label { font-size: clamp(1.375rem, 0.6rem + 3.1vw, 3.25rem); }
+
+.fq-index-list__row { position: relative; }
+
+/* Sits exactly over the row's own top border, not beside it. */
+.fq-index-list__row::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: -1px;
+  block-size: 2px;            /* 1px vanished at row width; still a hairline */
+  background: var(--fq-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.fq-index-list li:last-child .fq-index-list__row::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  block-size: 2px;
+  background: var(--fq-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.fq-index-list__num,
+.fq-index-list__label,
+.fq-index-list__arrow { will-change: transform; }
+
+.fq-index-list__arrow { display: inline-block; }
+
+/* Colour is the base layer and works with no motion at all. */
 .fq-index-list__row:hover .fq-index-list__num,
-.fq-index-list__row:hover .fq-index-list__arrow { color: var(--fq-text-strong); }
+.fq-index-list__row:focus-visible .fq-index-list__num { color: var(--fq-accent); }
+.fq-index-list__row:hover .fq-index-list__arrow,
+.fq-index-list__row:focus-visible .fq-index-list__arrow { color: var(--fq-text-strong); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fq-index-list__row::before,
+  .fq-index-list li:last-child .fq-index-list__row::after {
+    transition: transform 220ms var(--fq-ease-machine);
+  }
+  .fq-index-list__num,
+  .fq-index-list__label { transition: transform 180ms var(--fq-ease-machine),
+                                      color var(--fq-dur-snap) ease; }
+  .fq-index-list__arrow { transition: transform 180ms var(--fq-ease-machine),
+                                      color var(--fq-dur-snap) ease; }
+
+  .fq-index-list__row:hover::before,
+  .fq-index-list__row:focus-visible::before,
+  .fq-index-list li:last-child .fq-index-list__row:hover::after,
+  .fq-index-list li:last-child .fq-index-list__row:focus-visible::after { transform: scaleX(1); }
+
+  .fq-index-list__row:hover .fq-index-list__num,
+  .fq-index-list__row:focus-visible .fq-index-list__num,
+  .fq-index-list__row:hover .fq-index-list__label,
+  .fq-index-list__row:focus-visible .fq-index-list__label { transform: translateX(10px); }
+  .fq-index-list__row:hover .fq-index-list__arrow,
+  .fq-index-list__row:focus-visible .fq-index-list__arrow { transform: translateX(12px); }
+
+  /* Scroll-driven CSS, not an IntersectionObserver: JS that fails to run
+     would leave the whole index invisible. */
+  @supports (animation-timeline: view()) {
+    .fq-index-list__row {
+      animation: fq-row-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+    @keyframes fq-row-in {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: none; }
+    }
+  }
+}
+
+/* Nothing advances a scroll timeline on paper, so the rows stay at the
+   keyframe's opacity 0 and the whole index prints blank. */
+@media print {
+  .fq-index-list__row { animation: none !important; opacity: 1 !important; transform: none !important; }
+}
 
 /* ===========================================================================
    3. Socials

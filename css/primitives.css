@@ -176,11 +176,10 @@
 
 /* ---------------------------------------------------------------------------
    The one-shot heading lift (reference 10.5)
-   The reference reveals headings line by line behind masks, driven by GSAP
-   ScrollTrigger and SplitType. The same read is available with a clip-path
-   inset and no wrapper element, no observer and no library: the h1 is above
-   the fold on all six pages, so it fires once at load and never again.
-   Strictly one-shot, 420ms, and it does not exist at all under reduced motion.
+   The reference uses GSAP ScrollTrigger + SplitType; a clip-path inset gets
+   the same read with no wrapper, observer or library. The h1 is above the
+   fold on all six pages, so it fires once at load. 420ms, gone under
+   reduced motion.
    --------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: no-preference) {
   .fq-h1,
@@ -194,25 +193,13 @@
   }
 }
 
-/* ===========================================================================
-   4. Hairlines (reference 32.2.5)
-   The left rule is the house method for turning a paragraph into a data field.
-   =========================================================================== */
-
-.fq-rule-left {
-  border-inline-start: var(--fq-rule);
-  padding-inline-start: var(--fq-rule-inset);
-  display: flex;
-  flex-direction: column;
-  gap: var(--fq-space-1);
-}
 
 
 /* ===========================================================================
    5. The corner-bracketed button (reference 32.2.4)
-   Eight single-colour gradients on ONE pseudo element. No background, no
-   border, no radius, and crucially no four <img> per button: the reference's
-   original ships 188 corner-mark images on one page.
+   Eight single-colour gradients on ONE pseudo element -- no background,
+   border, radius, or corner images. The reference ships 188 of those images
+   on one page.
    =========================================================================== */
 
 .fq-bracket { position: relative; }
@@ -381,24 +368,14 @@
 
 /* The desktop inline nav. Below 767px the dialog menu is the only nav. */
 .fq-topnav { display: flex; align-items: center; gap: var(--fq-space-5); }
-/* Mask-and-swap. It borrows the full-screen menu's mask vocabulary, but it is
-   not the same move: .fq-menu__mask REVEALS one label rising from translateY
-   (110%) to 0, while this SWAPS a two-copy column up by exactly half its
-   height, so the label leaves and its duplicate arrives. The <a> is the mask,
-   a fixed one-line box. The box never moves, so there is no layout shift.
-   (revise brief section 4)
+/* Mask-and-swap: the <a> is a one-line mask, a two-copy column slides up
+   half its height. Not the menu's move, which reveals one copy.
 
-   overflow: clip, not hidden. Both clip the second copy, but `hidden` makes
-   the link a scroll container, and a clipped-but-rendered duplicate inside a
-   scroll container is something find-in-page will scroll to: measured, Ctrl+F
-   on a nav word left the mask parked at scrollTop 11 showing the wrong copy,
-   with no hover to reset it. `clip` cannot scroll at all. `hidden` is kept as
-   the preceding declaration so a browser without `clip` still masks.
-
-   Not clip-path: inset(0), which also stops the scrolling but clips the
-   element's own outline, silently deleting the focus ring. getComputedStyle
-   still reported `solid 2px #f68712` with nothing on screen; only the
-   screenshot caught it. */
+   clip, not hidden: hidden makes the link a scroll container, and find-in-page
+   scrolls to the clipped duplicate (measured: mask parked at scrollTop 11,
+   wrong copy showing). hidden stays as a fallback declaration.
+   Not clip-path: inset(0) -- it clips the element's own outline and silently
+   deletes the focus ring, which getComputedStyle still reports as present. */
 .fq-topnav__link {
   display: block;
   overflow: hidden;
@@ -721,14 +698,9 @@
 
 /* ===========================================================================
    11a. The CRT power-on (js/boot.js, reference 11.1.3 for the raster pitch)
-   Added by JS, home page only, once per session. Nothing here exists in the
-   markup, so with JS off there is no overlay and the page is simply there.
-
-   Five layers, painted back to front: two shutters that hold the screen dark
-   and then retract to open the raster, a bloom for the phosphor overshoot,
-   the beam hairline, and the scanlines over everything. Only the geometry
-   lives here; the timing is in boot.js, because the sequence is five
-   overlapping phases and splitting it across two files would hide that.
+   Added by JS, home page only. Nothing here is in the markup, so with JS off
+   there is no overlay. Geometry only; the five-phase timing lives in boot.js
+   so the sequence stays readable in one place.
    =========================================================================== */
 
 .fq-crt {
@@ -793,6 +765,31 @@
    that check is ever lost. */
 @media (forced-colors: active) {
   .fq-crt { display: none; }
+}
+
+/* ===========================================================================
+   11c. The hero oscilloscope (js/scope.js, home page only)
+   The hero section is the positioning context; the canvas fills it, sits
+   behind the content, and never intercepts a pointer.
+   =========================================================================== */
+
+.fq-hero-section { position: relative; }
+
+.fq-scope {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+.fq-scope__layer { display: block; inline-size: 100%; block-size: 100%; }
+
+/* The hero content sits above the trace. */
+.fq-hero-section > .fq-cell { position: relative; z-index: 1; }
+
+/* Decoration; forced colours cannot render a phosphor trail. */
+@media (forced-colors: active) {
+  .fq-scope { display: none; }
 }
 
 /* ===========================================================================

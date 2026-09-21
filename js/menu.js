@@ -2,11 +2,9 @@
    menu.js  -  the full-screen numbered menu
    Adapted from TELETECH-EVENTS-DESIGN-REFERENCE.md chapter 32.2.6.
 
-   <dialog> + showModal() is the whole reason to use a dialog here: the browser
-   gives us the focus trap, inertness of the page behind, and Escape-to-close
-   for free. The reference's version is an ES module; this is a classic script
-   because module scripts are blocked by CORS under file://, and the brief
-   requires the site to open with a double-click.
+   <dialog> + showModal() gives the focus trap, inertness and Escape-to-close
+   for free. Classic script, not the reference's ES module: modules are
+   CORS-blocked under file:// and the site must open with a double-click.
    --------------------------------------------------------------------------- */
 
 (function () {
