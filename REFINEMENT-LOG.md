@@ -1012,3 +1012,48 @@ all six, `document.getAnimations()` 0 and every canvas at 0.00% under
 The underlying point still holds for next time: at 30% comments there is not
 another easy 10 KB in here. The next substantial feature needs a build step,
 a higher budget, or something removed.
+
+
+---
+
+# Follow-up: the oscilloscope, slower and more dynamic
+
+Client ask: make the trace more dynamic and a bit slower.
+
+**Rebuilt on two independent oscillators** rather than one parameter with a
+phase term bolted on. The old version walked a fixed 3:2 figure and added a
+slow `phase` offset, which turned the shape over ~57s — too slow to read as
+movement, so the figure looked static with a dot running round it.
+
+A real X-Y scope draws from two tones, and when they are not in exact ratio
+the figure precesses and reshapes continuously. So the ratio is now detuned
+and modulated:
+
+| | |
+|---|---|
+| circuit / phosphor life | 1.8s → **2.8s** (the "slower") |
+| ratio | 1.5 ± 0.055 over 9.4s, ± 0.022 over 3.7s |
+| amplitude | ±7.5% over 6.1s (x), ±5.5% over 4.3s (y) |
+
+The two modulation periods are deliberately not harmonically related, so the
+shape never repeats. Because the trail stores absolute positions, the figure
+changing while the beam walks leaves the older pass offset from the newer one
+— the ribbon effect that makes it read as alive rather than as a loop.
+
+### Checks
+
+- **WCAG 2.2.2 still clear.** Every mark fades within one circuit, now 2.8s,
+  still well under the five seconds that would owe a pause control.
+- **No performance cost** despite a longer trail (~168 points): frame interval
+  median **16.7ms**, p95 17.3ms, worst 18ms — a solid 60fps.
+- **The breathing never clips the figure.** Painted bounding box sampled every
+  2s for 20s, covering a full breath cycle: x 285–1314 of 1600, y 48–795 of
+  844, never touching an edge.
+- **Reduced motion** draws one clean *closed* 3:2 figure at rest amplitude —
+  no detune, no breathing — so it reads as composed rather than as a frozen
+  frame of something that was moving. 1.13% lit, 0.00% changed over 3s,
+  `document.getAnimations()` 0.
+- Six pages clean, keyboard passes end to end on all six, no loop under 200ms.
+
+**Weight** 144,803 → 146,074 bytes: the richer trace costs 1,271 bytes of the
+headroom the previous pass freed, leaving 3,926 clear of 150,000.
