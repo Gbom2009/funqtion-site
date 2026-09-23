@@ -50,7 +50,15 @@
 
 .fq-hero__mark {
   display: block;
-  inline-size: clamp(120px, 20vw, 300px);
+  /* 20vw never beat the 120px floor below 600px, so the mark was a fixed
+     120px on every phone: 37.5% of the screen at 320 and 27.9% at 430, while
+     the title stays fluid at about 85%. It scaled with nothing.
+
+     32vw tracks the title across phones and tablets. The 34svh term is the
+     guard for short landscape windows, where 32vw alone would make the mark
+     taller than the space it has to sit in. svh, not vh, so a retracting
+     mobile toolbar does not resize it mid-scroll. */
+  inline-size: clamp(96px, min(32vw, 34svh), 300px);
   block-size: auto;
   margin-block-end: var(--fq-space-8);
 }
