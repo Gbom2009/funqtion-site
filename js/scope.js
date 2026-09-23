@@ -33,6 +33,16 @@
   var BREATH_Y = 0.055, PER_BY = 4300;
   var SEGMENTS = 260;    // samples per nominal circuit
 
+  // Pointer tuning. An X-Y scope's figure is decided by the two input
+  // frequencies and the gain on each axis, so pointing at it and changing
+  // the shape is the honest interaction for this instrument: you are
+  // turning its knobs, not steering a toy. X retunes the ratio, Y sets the
+  // vertical gain. Both are eased toward their resting value when the
+  // pointer leaves, so the figure never snaps.
+  var TUNE_RATIO = 0.42;   // how far the pointer can pull the ratio
+  var TUNE_GAIN  = 0.45;   // how far it can pull the vertical gain
+  var TUNE_EASE  = 0.055;  // per-frame approach to the target
+
   function init() {
     var host = document.getElementById('fq-scope');
     if (!host) return;
@@ -51,18 +61,44 @@
       cx.setTransform(1, 0, 0, 1, 0, 0);
       cx.scale(dpr, dpr);
       cx.lineCap = 'round'; cx.lineJoin = 'round';
-      var r = Math.min(w, h) * 0.42;
-      rx = r * 1.35; ry = r;
+      // Sized off each axis rather than the short side. Driving both from
+      // Math.min meant the figure shrank to whatever the smaller dimension
+      // allowed and left a wide screen mostly empty; this fills the host and
+      // is allowed to bleed a little past it, which the host clips.
+      rx = w * 0.46; ry = h * 0.44;
       ox = w / 2; oy = h / 2;
     }
 
+    // Pointer tuning, held as -1..1 on each axis with 0 at rest. The handler
+    // only stores the target; all the work happens in the frame loop, so a
+    // fast pointer cannot outrun the renderer.
+    var tgtX = 0, tgtY = 0, curX = 0, curY = 0, pointing = false;
+
+    function onMove(e) {
+      if (mq.matches || !visible) return;     // not under reduce, not off-screen
+      // Mouse and pen only. On touch a pointermove is usually a scroll, and
+      // retuning the figure while someone drags the page is noise, not
+      // interaction.
+      if (e.pointerType === 'touch') return;
+      var b = host.getBoundingClientRect();
+      if (!b.width || !b.height) return;
+      tgtX = ((e.clientX - b.left) / b.width  - 0.5) * 2;
+      tgtY = ((e.clientY - b.top)  / b.height - 0.5) * 2;
+      tgtX = Math.max(-1, Math.min(1, tgtX));
+      tgtY = Math.max(-1, Math.min(1, tgtY));
+      pointing = true;
+    }
+    function onLeave() { tgtX = 0; tgtY = 0; pointing = false; }
+
     // Everything slow lives here; the frame loop only advances two phases.
     function ratioAt(t) {
-      return RATIO + DETUNE_A * Math.sin(t / PER_A) + DETUNE_B * Math.sin(t / PER_B);
+      return RATIO + DETUNE_A * Math.sin(t / PER_A) + DETUNE_B * Math.sin(t / PER_B)
+           + curX * TUNE_RATIO;
     }
     function ampAt(t) {
+      var gain = 1 + curY * TUNE_GAIN;
       return [rx * (1 + BREATH_X * Math.sin(t / PER_BX)),
-              ry * (1 + BREATH_Y * Math.sin(t / PER_BY + 1.1))];
+              ry * (1 + BREATH_Y * Math.sin(t / PER_BY + 1.1)) * gain];
     }
 
     // Reduced motion: one closed 3:2 figure at rest amplitude, no detune or
@@ -93,6 +129,11 @@
     function frame(t) {
       var dt = last ? Math.min(t - last, 48) : 16;
       last = t;
+
+      // Approach the pointer's target rather than jumping to it, so the
+      // figure retunes the way a dial moves and settles back when you leave.
+      curX += (tgtX - curX) * TUNE_EASE;
+      curY += (tgtY - curY) * TUNE_EASE;
 
       var wy = WY;
       var wx = WY * ratioAt(t);
@@ -182,6 +223,13 @@
         visible = es[0].isIntersecting; apply();
       }, { threshold: 0 }).observe(host);
     }
+
+    // Bound on the window, not the host: .fq-scope is pointer-events:none so
+    // it can never receive an event of its own, and listening wider means the
+    // whole first screen tunes the figure rather than just the pixels over it.
+    window.addEventListener('pointermove', onMove, { passive: true });
+    document.addEventListener('pointerleave', onLeave);
+    window.addEventListener('blur', onLeave);
 
     var rt = 0;
     window.addEventListener('resize', function () {
