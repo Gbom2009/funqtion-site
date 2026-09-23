@@ -1361,3 +1361,48 @@ transition animations. Reduced motion still creates no transition at all
 (`swap:false|reveal:false`). The mark stays clear of both viewport edges.
 Six pages clean, keyboard passes end to end on all six, `getAnimations()` 0
 and every canvas at 0.00% under `reduce`. Weight 155,482, 94,518 clear.
+
+
+---
+
+# Follow-up: soften the mark
+
+Client feedback: the mark's turn is a bit much now the page has calmed down.
+
+| | before | after |
+|---|---|---|
+| duration | 560ms | **460ms** |
+| swell | ×1.7 | **×1.25** |
+| group easing | `cubic-bezier(0.85, 0, 0.15, 1)` | `cubic-bezier(0.4, 0, 0.2, 1)` |
+| spin easing | `cubic-bezier(0.5, 0, 0.3, 1)` | `cubic-bezier(0.4, 0, 0.2, 1)` |
+
+The turn stays a full 360°, because the logo is not symmetrical and anything
+less finishes crooked.
+
+### Two easings that were both wrong, for opposite reasons
+
+The hard `cubic-bezier(0.85, 0, 0.15, 1)` existed to hold the mark still
+through a dark beat that no longer exists — with nothing to hide it, it read
+as a whip across the screen.
+
+Reaching for the house `--fq-ease-machine` instead was worse:
+`cubic-bezier(0.14, 0.86, 0.37, 0.96)` is so front-loaded that the mark
+arrived at the top bar inside the first fifth of the move and then crawled
+there. Caught by scrubbing a frozen transition and seeing the mark already
+parked at 39% through.
+
+Subtle turned out to mean travelling at an even rate and arriving on time, so
+both are now a plain ease-in-out.
+
+The 1.7 swell was sized to compete with a page that was collapsing behind it.
+Nothing needs competing with now. Both values are well inside the crop limit
+— the mark sits at roughly (36, 32) in the top bar, so a 32px logo can reach
+about 54px before a rotated corner crosses the top of the viewport.
+
+### Checks
+
+Four routes settle with the bar mark at 32×32 @20,16, no leftover transition
+animations, no errors. Reduced motion still creates no transition
+(`swap:false|reveal:false`). Mark clear of both viewport edges. Six pages
+clean, keyboard passes end to end on all six, `getAnimations()` 0 and every
+canvas at 0.00% under `reduce`.

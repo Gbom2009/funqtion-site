@@ -429,12 +429,15 @@
 body:has(.fq-hero__mark) .fq-topbar__logo { view-transition-name: none; }
 .fq-hero__mark { view-transition-name: fq-mark; }
 
-/* A hard ease-in-out on the group, so the mark hangs where it started while
-   the picture collapses, crosses during the dark beat, and settles as the
-   new raster opens -- rather than drifting steadily and arriving early. */
+/* A plain, even ease-in-out. Two curves were wrong here for opposite
+   reasons: the old cubic-bezier(0.85, 0, 0.15, 1) existed to hold the mark
+   still through a dark beat that no longer exists, and --fq-ease-machine
+   (0.14, 0.86, ...) is so front-loaded that the mark reached the top bar in
+   the first fifth of the move and then crawled. Subtle means travelling at
+   an even rate and arriving on time. */
 ::view-transition-group(fq-mark) {
-  animation-duration: 560ms;
-  animation-timing-function: cubic-bezier(0.85, 0, 0.15, 1);
+  animation-duration: 460ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 /* One turn plus a swell. The group carries position and size between the two
    layouts; this carries the flourish, on the image itself so it turns about
@@ -443,17 +446,20 @@ body:has(.fq-hero__mark) .fq-topbar__logo { view-transition-name: none; }
    mark is in the top bar on both sides and barely travels at all. */
 ::view-transition-old(fq-mark),
 ::view-transition-new(fq-mark) {
-  animation: fq-mark-spin 560ms cubic-bezier(0.5, 0, 0.3, 1) both;
+  animation: fq-mark-spin 460ms cubic-bezier(0.4, 0, 0.2, 1) both;
   transform-origin: 50% 50%;
 }
+/* A full turn, not a half: 360 degrees lands the mark exactly where it
+   started, and the logo is not symmetrical, so anything else finishes
+   crooked. The swell is 1.25 -- enough to give the turn some weight without
+   the mark lunging at you. It was 1.7, which was chosen when the page was
+   collapsing behind it and had to be competed with; nothing needs competing
+   with now. Well inside the crop limit either way: the mark sits at roughly
+   (36, 32) in the top bar, so a 32px logo can swell to about 54px before a
+   rotated corner crosses the top of the viewport. */
 @keyframes fq-mark-spin {
   0%   { transform: rotate(0deg)   scale(1); }
-  /* 1.7, not more. The mark sits at roughly (36, 32) in the top bar, so a
-     32px logo can only swell to about 54px before a rotated corner crosses
-     the top edge of the viewport and gets cropped. Measured at 2.2 it lost
-     its top. With the page settled down to a 3% shift, this swell is the
-     whole transition on an interior route, so it has to survive the crop. */
-  50%  { transform: rotate(190deg) scale(1.7); }
+  50%  { transform: rotate(185deg) scale(1.25); }
   100% { transform: rotate(360deg) scale(1); }
 }
 
