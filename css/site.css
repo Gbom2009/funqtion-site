@@ -381,42 +381,84 @@
 
 
 /* ===========================================================================
-   4. Interpage transitions (cross-document view transitions)
-   No JS, so nothing is intercepted and nothing is delayed: the browser keeps
-   the outgoing page on screen while the next one loads, and the transition
-   overlaps real navigation time rather than being added to it. A browser
-   without view transitions simply navigates, which is the correct fallback.
-   Also why this is CSS and not a click handler: intercepting links to play an
-   animation would fake a delay, break middle-click and modified clicks, and
-   leave nothing on the Back button.
+   4. Interpage transitions: the display changes channel
+   Chapter 8.2.5 of the reference proposes the boot animation doubling as the
+   page transition. That is what this is, and it is the inverse of js/boot.js:
+   the outgoing page collapses to a line the way a CRT switches off, the mark
+   spins in the dark beat, and the incoming page's raster opens back out.
+
+   Still no JavaScript. A cross-document view transition keeps the outgoing
+   page on screen while the next one loads, so nothing is intercepted, no
+   click is swallowed, middle-click and the Back button behave normally, and
+   a browser without view transitions simply navigates.
+
+   Honest about the cost, having overclaimed this before: the LOAD overlaps,
+   but the animation itself plays after the new document is ready, so it does
+   occupy ~560ms that an instant navigation would not. That is the price of a
+   transition; it is not a delay invented to cover a slow page.
    =========================================================================== */
 
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
 }
 
-/* The mark IS the transition. On the home page the big hero mark carries the
-   name; on the other five the top bar's 32px one does. Leaving home, the
-   centred mark flies up and shrinks into the bar; coming back, it grows out
-   of it. Between two interior pages the name sits on the same element in the
-   same place, so the chrome holds still while the content changes.
-
-   A view-transition-name has to be unique in a document or the whole
-   transition is skipped, and the home page has both marks. :has() hands the
-   name over instead of letting them both claim it, which keeps this to CSS
-   and touches no markup. */
+/* The mark is lifted out of the root snapshot, so it does not get squashed
+   with the page: it stays whole in the centre of the dark beat and spins.
+   A name must be unique per document or the transition is silently skipped,
+   and the home page has two marks -- :has() hands the name from the bar to
+   the hero on that one page, which keeps this in CSS and touches no markup. */
 .fq-topbar__logo { view-transition-name: fq-mark; }
 body:has(.fq-hero__mark) .fq-topbar__logo { view-transition-name: none; }
 .fq-hero__mark { view-transition-name: fq-mark; }
 
+/* A hard ease-in-out on the group, so the mark hangs where it started while
+   the picture collapses, crosses during the dark beat, and settles as the
+   new raster opens -- rather than drifting steadily and arriving early. */
 ::view-transition-group(fq-mark) {
-  animation-duration: 420ms;
-  animation-timing-function: var(--fq-ease-machine);
+  animation-duration: 560ms;
+  animation-timing-function: cubic-bezier(0.85, 0, 0.15, 1);
 }
-/* The rest of the page is a short cross-fade under the travelling mark, not
-   a second thing competing with it. */
-::view-transition-old(root),
+/* One turn plus a swell. The group carries position and size between the two
+   layouts; this carries the flourish, on the image itself so it turns about
+   its own centre wherever it happens to be. The swell matters because it is
+   what makes the move read on an interior-to-interior navigation, where the
+   mark is in the top bar on both sides and barely travels at all. */
+::view-transition-old(fq-mark),
+::view-transition-new(fq-mark) {
+  animation: fq-mark-spin 560ms cubic-bezier(0.5, 0, 0.3, 1) both;
+  transform-origin: 50% 50%;
+}
+@keyframes fq-mark-spin {
+  0%   { transform: rotate(0deg)   scale(1); }
+  /* 1.7, not more. The mark sits at roughly (36, 32) in the top bar, so a
+     32px logo can only swell to about 54px before a rotated corner crosses
+     the top edge of the viewport and gets cropped. Measured at 2.2 it lost
+     its top. The page collapse carries the drama on interior routes; the
+     mark is the accent there, and the feature on the home route. */
+  50%  { transform: rotate(190deg) scale(1.7); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* Vertical collapse out, vertical open in: the tube switching off and on.
+   No brightness filter on the way down, which was the first thing tried and
+   is useless here: the page is #040404, and any multiple of near-black is
+   still near-black, so the iconic bright collapse line never appeared. The
+   mark is the lit thing in the dark beat instead, which suits a logo-led
+   transition better than a generic scanline would. */
+::view-transition-old(root) {
+  animation: fq-tube-off 260ms cubic-bezier(0.6, 0, 0.9, 0.4) both;
+}
 ::view-transition-new(root) {
-  animation-duration: 220ms;
-  animation-timing-function: linear;
+  animation: fq-tube-on 300ms cubic-bezier(0.1, 0.7, 0.3, 1) both;
+  animation-delay: 260ms;
+}
+@keyframes fq-tube-off {
+  0%   { transform: scaleY(1);     opacity: 1; }
+  70%  { transform: scaleY(0.05);  opacity: 1; }
+  100% { transform: scaleY(0.004); opacity: 0; }
+}
+@keyframes fq-tube-on {
+  0%   { transform: scaleY(0.004); opacity: 0; }
+  30%  { transform: scaleY(0.05);  opacity: 1; }
+  100% { transform: scaleY(1);     opacity: 1; }
 }
