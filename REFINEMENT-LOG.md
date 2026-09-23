@@ -1463,3 +1463,68 @@ Still two rAF loops; pointer input adds none. Nothing loops faster than
 200ms. Every mark still fades within one circuit, so WCAG 2.2.2 owes no
 pause control. Six pages clean, keyboard passes end to end on all six, hero
 still exactly one screen at 390/768/1600.
+
+
+---
+
+# Follow-up: the scope was invisible, and I had been checking it wrong
+
+Client, after the interactive scope shipped: "i dont notice shit". They were
+right, and the reason is worth writing down.
+
+## How I missed it
+
+Every screenshot I used to judge this trace was taken with the page content
+hidden, so the figure sat alone on a black field and looked terrific. On the
+real page — a 184px title, the grain, the lattice — it was a 1.6px hairline
+that nobody would ever see.
+
+Measured on the deployed page, the alpha histogram of the trace was:
+
+| alpha | pixels |
+|---|---:|
+| 0–31 | 11,561 |
+| 224–255 | **181** |
+
+Almost the whole figure was near-transparent. A `(1-age)²` ramp on a 1.6px
+line is a comet on an empty canvas and nothing at all on a real one. Coverage
+was 2.12%.
+
+**The lesson is the check, not the number.** "Looks good with the content
+hidden" is not evidence about a background layer. Every judgement here is now
+made against the composed page.
+
+## What changed
+
+- **Banded drawing.** The trail is stroked as 12 age bands, one path each,
+  instead of one stroke per sample — 13 strokes a frame instead of ~170.
+- **That saving pays for a glow pass**: a wide soft stroke under a bright
+  core, which is what makes a phosphor trace read as light rather than as a
+  hairline.
+- **A real alpha floor.** Linear ramp from 0.22 to 1.0 instead of squared to
+  nothing, so the old end of the trace is still lit.
+- **Head 2.3px → up to 5.5px** with a bigger glow. It was a speck.
+- **Weights scale with the viewport.** A fixed 3px core and 9px glow was
+  right at 1400px and swamped the hero at 390px, where the figure already
+  fills proportionally far more of the screen.
+- **The reduced-motion still frame was re-weighted to match.** At the old
+  0.22 alpha on a 1.25px line it was far fainter than what everyone else
+  sees, so reduced motion got a worse-composed hero, not just a stiller one.
+
+## Measured, on the real page
+
+| | before | after |
+|---|---:|---:|
+| canvas coverage | 2.12% | **8.16%** |
+| pixels above alpha 224 | 181 | **3,282** |
+| pointer far-left vs far-right, whole page | — | **9.24%** of pixels differ |
+
+That last number is the interactivity finally being visible in context, not
+just in the canvas.
+
+Frame interval unchanged despite the glow pass, because the banding more than
+paid for it: median **16.7ms**, worst 20ms while sweeping the pointer.
+
+Reduced motion still holds: a pointer sweep across the whole hero leaves the
+canvas byte-identical, `document.getAnimations()` at 0 on all six pages. Two
+rAF loops, nothing under 200ms, six pages clean, keyboard passes end to end.

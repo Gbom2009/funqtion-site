@@ -33,6 +33,17 @@
   var BREATH_Y = 0.055, PER_BY = 4300;
   var SEGMENTS = 260;    // samples per nominal circuit
 
+  // How the trace is painted. Sized against the real page, with the title
+  // and the grain on top, not against an empty canvas.
+  var BANDS    = 12;     // age bands in the core pass
+  var CORE_MIN = 0.22;   // alpha at the tail -- a floor, not a fade to nothing
+  var CORE_MAX = 1;      // alpha at the head
+  var GLOW_A   = 0.1;
+  // Stroke weights scale with the viewport, set in size(). A fixed 3px core
+  // and 9px glow read correctly at 1400px and swamped the hero at 390, where
+  // the figure already fills proportionally far more of the screen.
+  var CORE_W = 3, GLOW_W = 9, HEAD_R = 5;
+
   // Pointer tuning. An X-Y scope's figure is decided by the two input
   // frequencies and the gain on each axis, so pointing at it and changing
   // the shape is the honest interaction for this instrument: you are
@@ -67,6 +78,9 @@
       // is allowed to bleed a little past it, which the host clips.
       rx = w * 0.46; ry = h * 0.44;
       ox = w / 2; oy = h / 2;
+      CORE_W = Math.max(2, Math.min(w / 500, 3.2));
+      GLOW_W = CORE_W * 3;
+      HEAD_R = Math.max(3.5, Math.min(w / 280, 5.5));
     }
 
     // Pointer tuning, held as -1..1 on each axis with 0 at rest. The handler
@@ -105,8 +119,11 @@
     // breathing, so it reads as composed rather than as a frozen frame.
     function still() {
       cx.clearRect(0, 0, w, h);
-      cx.strokeStyle = 'rgb(240 240 240 / 0.22)';
-      cx.lineWidth = 1.25;
+      // Weighted to match the animated trace. At the old 0.22 on a 1.25px
+      // line this was far fainter than what everyone else sees, so reduced
+      // motion got a worse-composed hero, not just a stiller one.
+      cx.strokeStyle = 'rgb(240 240 240 / 0.5)';
+      cx.lineWidth = CORE_W;
       cx.beginPath();
       for (var i = 0; i <= SEGMENTS; i++) {
         var u = (i / SEGMENTS) * Math.PI * 2;
@@ -165,27 +182,54 @@
       while (trail.length && trail[0].t < cut) { trail.shift(); }
 
       cx.clearRect(0, 0, w, h);
-      cx.lineWidth = 1.6;
-      for (var j = 1; j < trail.length; j++) {
-        var age = (t - trail[j].t) / TAIL_MS;         // 0 newest, 1 oldest
-        var a = (1 - age) * (1 - age) * 0.9;          // squared, so the head reads
-        if (a <= 0.004) continue;
-        cx.strokeStyle = 'rgb(240 240 240 / ' + a.toFixed(3) + ')';
+
+      // Drawn in age bands, not segment by segment. Two reasons. It is far
+      // cheaper -- 13 strokes a frame instead of one per sample, ~170 -- and
+      // the saving pays for a wide soft pass under a bright core, which is
+      // what makes a phosphor trace read as light rather than as a hairline.
+      //
+      // The first version stroked every segment individually at
+      // (1-age)^2 * 0.9 on a 1.6px line. Measured on the real page, that put
+      // 11,561 pixels at alpha 0-31 against 181 above 224: almost the whole
+      // figure was nearly transparent, and next to a 184px title it simply
+      // could not be seen. The ramp is linear off a 0.22 floor now, so the
+      // oldest part of the trace is still clearly lit.
+      var n = trail.length;
+      if (n > 1) {
+        // Soft wide pass: the glow around the beam.
+        cx.lineWidth = GLOW_W;
+        cx.strokeStyle = 'rgb(240 240 240 / ' + GLOW_A + ')';
         cx.beginPath();
-        cx.moveTo(trail[j - 1].x, trail[j - 1].y);
-        cx.lineTo(trail[j].x, trail[j].y);
+        cx.moveTo(trail[0].x, trail[0].y);
+        for (var g = 1; g < n; g++) { cx.lineTo(trail[g].x, trail[g].y); }
         cx.stroke();
+
+        // Core pass, banded by age so the head still reads brightest.
+        var per = Math.max(1, Math.ceil(n / BANDS));
+        cx.lineWidth = CORE_W;
+        for (var band = 0; band < BANDS; band++) {
+          var from = band * per;
+          var to = Math.min(n - 1, from + per);
+          if (to <= from) break;
+          var age = 1 - (from + per / 2) / n;          // 1 oldest, 0 newest
+          var a = CORE_MIN + (1 - age) * (CORE_MAX - CORE_MIN);
+          cx.strokeStyle = 'rgb(240 240 240 / ' + a.toFixed(3) + ')';
+          cx.beginPath();
+          cx.moveTo(trail[from].x, trail[from].y);
+          for (var k = from + 1; k <= to; k++) { cx.lineTo(trail[k].x, trail[k].y); }
+          cx.stroke();
+        }
       }
 
-      // Exactly one bright point, drawn onto a cleared canvas so it cannot
-      // smear into the dotted orange line a decaying canvas produced.
-      if (trail.length) {
-        var head = trail[trail.length - 1];
+      // The beam head: the one accent in this layer, and now big enough to
+      // find. It was 2.3px, which is a speck on a 1400px screen.
+      if (n) {
+        var head = trail[n - 1];
         cx.fillStyle = '#f68712';
         cx.shadowColor = '#f68712';
-        cx.shadowBlur = 12;
+        cx.shadowBlur = 26;
         cx.beginPath();
-        cx.arc(head.x, head.y, 2.3, 0, Math.PI * 2);
+        cx.arc(head.x, head.y, HEAD_R, 0, Math.PI * 2);
         cx.fill();
         cx.shadowBlur = 0;
       }
