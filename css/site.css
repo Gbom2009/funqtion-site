@@ -451,32 +451,34 @@ body:has(.fq-hero__mark) .fq-topbar__logo { view-transition-name: none; }
   /* 1.7, not more. The mark sits at roughly (36, 32) in the top bar, so a
      32px logo can only swell to about 54px before a rotated corner crosses
      the top edge of the viewport and gets cropped. Measured at 2.2 it lost
-     its top. The page collapse carries the drama on interior routes; the
-     mark is the accent there, and the feature on the home route. */
+     its top. With the page settled down to a 3% shift, this swell is the
+     whole transition on an interior route, so it has to survive the crop. */
   50%  { transform: rotate(190deg) scale(1.7); }
   100% { transform: rotate(360deg) scale(1); }
 }
 
-/* Vertical collapse out, vertical open in: the tube switching off and on.
-   No brightness filter on the way down, which was the first thing tried and
-   is useless here: the page is #040404, and any multiple of near-black is
-   still near-black, so the iconic bright collapse line never appeared. The
-   mark is the lit thing in the dark beat instead, which suits a logo-led
-   transition better than a generic scanline would. */
+/* The page gets out of the mark's way, and no further. It used to collapse
+   all the way to a line and reopen -- the full CRT switch-off -- which read
+   as the whole page flipping edge-on and pulled attention off the mark,
+   which is the thing worth watching. A 3% vertical settle keeps the flavour
+   of a tube without the somersault.
+
+   Also gone with it: a brightness filter on the collapse, which did nothing
+   at all. The page is #040404, and any multiple of near-black is still
+   near-black, so the bright CRT-off line it was supposed to make never
+   existed. The mark is the lit thing here. */
 ::view-transition-old(root) {
-  animation: fq-tube-off 260ms cubic-bezier(0.6, 0, 0.9, 0.4) both;
+  animation: fq-page-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 ::view-transition-new(root) {
-  animation: fq-tube-on 300ms cubic-bezier(0.1, 0.7, 0.3, 1) both;
-  animation-delay: 260ms;
+  animation: fq-page-in 260ms cubic-bezier(0, 0, 0.3, 1) both;
+  animation-delay: 170ms;
 }
-@keyframes fq-tube-off {
-  0%   { transform: scaleY(1);     opacity: 1; }
-  70%  { transform: scaleY(0.05);  opacity: 1; }
-  100% { transform: scaleY(0.004); opacity: 0; }
+@keyframes fq-page-out {
+  from { opacity: 1; transform: scaleY(1); }
+  to   { opacity: 0; transform: scaleY(0.97); }
 }
-@keyframes fq-tube-on {
-  0%   { transform: scaleY(0.004); opacity: 0; }
-  30%  { transform: scaleY(0.05);  opacity: 1; }
-  100% { transform: scaleY(1);     opacity: 1; }
+@keyframes fq-page-in {
+  from { opacity: 0; transform: scaleY(0.985); }
+  to   { opacity: 1; transform: scaleY(1); }
 }

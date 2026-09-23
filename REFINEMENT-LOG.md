@@ -1323,3 +1323,41 @@ Worth noting what the fix actually found: only `index.html` had the short
 Six pages clean, no JS errors, no horizontal overflow. Keyboard passes end to
 end on all six. Under `reduce`, `getAnimations()` is 0 and every canvas
 diffs at 0.00% on all six. Weight 155,411 bytes, 94,589 clear of the cap.
+
+
+---
+
+# Follow-up: calm the page, keep the spin
+
+Client feedback: the spinning mark is right, the page motion is too much.
+
+The outgoing page was collapsing all the way to a line and the incoming one
+reopening from it — the full CRT switch-off. Correctly read as the whole page
+**flipping edge-on**, which is what a hard scaleY collapse looks like, and it
+pulled attention off the mark, which is the thing worth watching.
+
+**The mark's animation is untouched** — same 560ms, same 360° turn, same 1.7
+swell, same easing. Only the page behind it changed:
+
+| | before | after |
+|---|---|---|
+| old page | scaleY 1 → 0.004, 260ms | opacity 1 → 0, scaleY 1 → **0.97**, 200ms |
+| new page | scaleY 0.004 → 1, 300ms after a 260ms hold | opacity 0 → 1, scaleY 0.985 → 1, 260ms after 170ms |
+
+A 3% vertical settle keeps the flavour of a tube without the somersault, and
+the two pages overlap for only about 30ms, so the cross-fade never reads as
+doubled text sitting on screen.
+
+One stale comment went with it: the swell note still claimed "the page
+collapse carries the drama on interior routes". With the collapse gone the
+swell *is* the whole transition on an interior route, which is a better
+reason for it to survive the viewport crop than the one previously written
+down.
+
+### Checks
+
+Four routes settle with the bar mark at 32×32 @20,16 and no leftover
+transition animations. Reduced motion still creates no transition at all
+(`swap:false|reveal:false`). The mark stays clear of both viewport edges.
+Six pages clean, keyboard passes end to end on all six, `getAnimations()` 0
+and every canvas at 0.00% under `reduce`. Weight 155,482, 94,518 clear.
