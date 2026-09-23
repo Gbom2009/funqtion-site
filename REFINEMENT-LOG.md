@@ -1257,3 +1257,69 @@ Six pages clean, keyboard passes end to end on all six, and under `reduce`
 
 **Weight** 151945 bytes, 98055 clear of the 250KB cap. Render-blocking CSS
 15445 bytes gzipped against the 30KB cap. Still two rAF loops — this adds none.
+
+
+---
+
+# Follow-up: the index, reformatted
+
+Asked to format the index better because information felt missing at the top
+of the page. Checking what to restore turned up something worth recording
+first.
+
+## The removed copy was never in CONTENT.md
+
+`Basis`, `Bezetting`, `2 DJ's`, `Geluid en licht`, `Eigen set` and
+`Aarle-Rixtel, NL` appear **nowhere** in `CONTENT.md`, whose opening line is
+"Every string below is final and must be used verbatim". The spec for
+`index.html` says the page is "a logo, two lines, a link list and three
+social icons — keep it that spare", and permits **one** short Dutch sentence
+if the layout needs it, flagged as new.
+
+So the datasheet removed in the previous pass was copy invented during the
+original build, not client copy. The same invented strings are still in the
+footer (`Basis`, `Aarle-Rixtel, NL`, `Geluid · Licht · Laser`); the client's
+decision is to **leave them**, recorded here so the deviation is on the books
+rather than silently carried.
+
+Decision on the first screen: **nothing new, reformat only.**
+
+## Three measured defects, and their causes
+
+**The hero overflowed the viewport at every width** — 784 against 780 at
+390px, 904 against 900 at 768px, 909 against 900 at 1600px. Cause: a
+hardcoded `calc(100svh - 73px)` against a bar that is really **65px on
+desktop and 77px below 992**. The magic number was wrong in both directions.
+The bar's height is now a token, `--fq-topbar-h`, that the bar itself is set
+to and the hero subtracts, so the two cannot drift.
+
+**The section rail was jammed against the top bar at 1600px** — a 0px gap,
+against 153px at 390px. When the hero widened to twelve columns in the
+oversized-title pass, the rail was pushed into a grid row of its own, which
+also cost 107px of vertical space and was enough on its own to push the
+descriptor under the fold. It is out of flow now, pinned to the corner as the
+furniture it was always described as.
+
+**100px of stale asymmetric padding.** `.fq-hero` still carried
+`padding-block: 2.5rem 3.75rem` from when the datasheet sat beneath it — 40px
+top against 60px bottom, so the block was never actually centred.
+
+Result, measured at all three widths: the hero is now exactly one screen
+(77→780, 77→900, 65→900), **no overflow anywhere**, and the block is centred
+to the pixel at 768 and 1600.
+
+## Copyright
+
+Corrected to the spec's wording with 2026, at the client's instruction; the
+large `FEEL THE MUSIQ` tagline is untouched.
+
+Worth noting what the fix actually found: only `index.html` had the short
+`© FEEL THE MUSIQ`. **The other five already carried the spec line with
+2025**, so the six footers disagreed with each other. All six now read
+`© 2026 FEEL THE MUSIQ - Team Funqtion. Alle rechten voorbehouden.`
+
+## Checks
+
+Six pages clean, no JS errors, no horizontal overflow. Keyboard passes end to
+end on all six. Under `reduce`, `getAnimations()` is 0 and every canvas
+diffs at 0.00% on all six. Weight 155,411 bytes, 94,589 clear of the cap.

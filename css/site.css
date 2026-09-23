@@ -8,23 +8,41 @@
    1. Home hero
    =========================================================================== */
 
-.fq-hero-section { align-content: center; min-block-size: calc(100svh - 73px); }
+/* Exactly one screen, bar included. border-box means the padding lives
+   inside the min-height, so the block is centred with guaranteed clearance
+   above and below rather than running under the fold. */
+.fq-hero-section {
+  align-content: center;
+  min-block-size: calc(100svh - var(--fq-topbar-h));
+  padding-block: var(--fq-space-8);
+}
 
-/* The hero is centred on the grid's TRUE centre line: it occupies columns
-   4 to 9 of twelve, so its midpoint is the page's midpoint. Centring by
-   text-align alone would float the mark in space; placing it on the lattice
-   and pinning the furniture to the edges keeps it an instrument panel.
-   (revise brief section 3) */
+/* The hero spans all twelve columns and centres its own contents, so its
+   midpoint is the page's midpoint. Centring by text-align alone would float
+   the mark in space; placing it on the lattice and pinning the furniture to
+   the edges keeps it an instrument panel. (revise brief section 3) */
 .fq-hero {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding-block: var(--fq-space-10) var(--fq-space-15);
+  /* No padding here. It used to carry 40px top / 60px bottom to sit above the
+     datasheet; with that gone the asymmetry just pushed the block off centre
+     and added 100px that shoved the descriptor under the fold at 1600px. The
+     section owns the vertical space now. */
 }
 
 /* Corner furniture stays pinned left, so the axis reads as deliberate. */
-.fq-hero-rail { align-self: start; padding-block-start: var(--fq-space-10); }
+/* Edge furniture, not a row. In flow it took a whole grid row and pushed the
+   hero down -- 107px at 1600px, which was enough to shove the descriptor past
+   the fold. Out of flow it marks the corner, the hero centres in the whole
+   screen, and it behaves identically at every width. */
+.fq-hero-rail {
+  position: absolute;
+  inset-block-start: var(--fq-space-8);
+  inset-inline-start: var(--fq-gutter);
+  margin: 0;
+}
 @media screen and (max-width: 767px) {
   .fq-hero-rail { padding-block-start: var(--fq-space-8); }
   .fq-hero { padding-block: var(--fq-space-5) var(--fq-space-10); }

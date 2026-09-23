@@ -110,6 +110,13 @@
   /* One gutter, changing exactly once, at 767px. */
   --fq-gutter: var(--fq-space-5);
 
+  /* The top bar's height, declared rather than discovered. The hero subtracts
+     it to fill exactly one screen, and the bar itself is set to it, so the
+     two cannot drift. It was a hardcoded 73px against a bar that is really
+     65px on desktop and 77px below 992, which pushed the hero past the fold
+     at every width. */
+  --fq-topbar-h: 65px;
+
   /* === 8. Motion ==========================================================
      The reference's single CustomEase is one cubic and needs no library. */
   --fq-ease-machine: cubic-bezier(0.14, 0.86, 0.37, 0.96);
@@ -219,3 +226,5 @@ img::selection { background-color: transparent; }
     scroll-behavior: auto !important;
   }
 }
+
+@media screen and (max-width: 991px) { :root { --fq-topbar-h: 77px; } }
