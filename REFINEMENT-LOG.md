@@ -1596,3 +1596,59 @@ Everything else holds: six pages clean, hero still exactly one screen at
 390/768/1600, four transition routes settle, `forced-colors` hides both
 layers, and under `reduce` a full pointer sweep leaves the canvas
 byte-identical with `getAnimations()` at 0.
+
+
+---
+
+# Follow-up: the contrast was working and still invisible
+
+Client: "the contrast does not work". It was working. It was just far too
+small to see, which amounts to the same thing.
+
+## What the measurement actually said
+
+A/B on the deployed page — same build, blend on against blend forced off,
+using the unblended run as a glyph mask so only real glyph pixels count:
+
+> 125,639 glyph pixels sampled, **1,436 markedly darkened — 1.14%**
+
+So the inversion was happening on barely one pixel in a hundred of the
+title. A ~3px line crossing 316px-tall letters is technically inverting and
+visually nothing.
+
+**The depth of the contrast was never the problem.** White on a white glyph
+is |240−240| = 0, which is already maximum contrast. The only lever is
+**area**, and I had been treating it as a colour problem.
+
+## The fix
+
+The beam is much bolder: core from a 2–3.2px range to **3.5–9px**, glow
+multiplier 3 → 2.2 so it does not go muddy, head up to 8px. Same A/B after:
+
+| | glyph pixels darkened |
+|---|---:|
+| before | 1,436 (1.14%) |
+| after | **4,513 (3.54%)** |
+
+and at the moment the beam crosses the type, 1,598 pixels are a dark cut
+with glyph directly above *and* below — a bar through the letters rather
+than a scratch.
+
+## Two dead ends worth recording
+
+- **I first suspected my own perf mitigations.** `will-change: opacity` and
+  `contain: paint` both create stacking contexts and can stop a blend
+  compositing, and I had added them *after* the last screenshot without
+  re-checking the visual. Tested by toggling each on the live page: the
+  blend was fine in all four combinations. Good suspicion, wrong culprit.
+- **Two bad measurements before a good one.** Counting dark pixels in the
+  title's bounding box measures the background, which is always dark.
+  Counting bright glyph pixels with the blend on and off is confounded,
+  because the beam adds bright pixels over the background at the same time.
+  Only masking by the unblended run gives a number that means anything —
+  that mistake is why the first attempt read 0.80% and looked like a
+  regression.
+
+Cost unchanged by the widening: median 19.0–19.4ms, worst 37–47ms, the same
+as the blend alone. Reduced motion, forced colours, touch and the six-page
+audit all unchanged.

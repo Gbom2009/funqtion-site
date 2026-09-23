@@ -96,9 +96,14 @@
       // is allowed to bleed a little past it, which the host clips.
       rx = w * 0.46; ry = h * 0.44;
       ox = w / 2; oy = h / 2;
-      CORE_W = Math.max(2, Math.min(w / 500, 3.2));
-      GLOW_W = CORE_W * 3;
-      HEAD_R = Math.max(3.5, Math.min(w / 280, 5.5));
+      // Much bolder than it was. With the difference blend the depth of the
+      // contrast is already maximal -- white on a white glyph is black -- so
+      // the only lever on how much you notice it is AREA, and a ~3px line
+      // crossing 316px letters darkened 1.14% of the title's glyph pixels.
+      // Technically inverting, visually nothing.
+      CORE_W = Math.max(3.5, Math.min(w / 200, 9));
+      GLOW_W = CORE_W * 2.2;
+      HEAD_R = Math.max(5, Math.min(w / 190, 8));
     }
 
     // Pointer tuning, held as -1..1 on each axis with 0 at rest. The handler
