@@ -331,6 +331,7 @@
    =========================================================================== */
 
 .fq-topbar {
+  block-size: var(--fq-topbar-h);
   position: sticky;
   inset-block-start: 0;
   z-index: var(--fq-z-nav);
