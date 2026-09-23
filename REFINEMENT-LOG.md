@@ -1652,3 +1652,84 @@ than a scratch.
 Cost unchanged by the widening: median 19.0–19.4ms, worst 37–47ms, the same
 as the blend alone. Reduced motion, forced colours, touch and the six-page
 audit all unchanged.
+
+---
+
+# Follow-up: the mark did not scale on phones
+
+Client: "on mobile make sure that the logo fits better".
+
+## The bug was a floor, not a size
+
+```
+.fq-hero__mark { inline-size: clamp(120px, 20vw, 300px); }
+```
+
+20vw only beats the 120px floor above 600px wide. Below that — i.e. on
+every phone — the clamp resolves to the floor, so the mark was a **fixed
+120px at every mobile width**. Measured against the viewport:
+
+| width | mark | % of screen | % of title |
+|---|---:|---:|---:|
+| 320 | 120px | 37.5% | 43% |
+| 390 | 120px | 30.8% | 35% |
+| 430 | 120px | 27.9% | 33% |
+
+The title next to it stays fluid at about 85% of the screen, so the two
+drifted apart across the range: the mark was crowding the 320 screen and
+looked undersized by 430. It was not too big or too small — it scaled with
+nothing.
+
+## The fix
+
+```
+inline-size: clamp(96px, min(32vw, 34svh), 300px);
+```
+
+- **32vw** is the real term now. 96px as a floor is low enough that it
+  never engages on a phone, so the mark tracks the title all the way down.
+- **34svh** guards short landscape windows, where 32vw alone would make the
+  mark taller than the space it has to sit in. `svh`, not `vh`, so a
+  retracting mobile toolbar cannot resize it mid-scroll.
+- 300px cap unchanged, so desktop is byte-identical.
+
+After:
+
+| | mark | % of screen |
+|---|---:|---:|
+| 320×568 | 102px | 31.9% |
+| 390×844 | 125px | 32.1% |
+| 430×932 | 138px | 32.1% |
+| 768×1024 | 246px | 32.0% |
+| 1400×900 | 300px | 21.4% (cap, unchanged) |
+
+One constant proportion across the whole phone and tablet range instead of
+a 10-point drift.
+
+## Landscape, checked rather than assumed
+
+740×360 is the one viewport where the hero does not fit the first screen.
+That is **pre-existing**: stashing the change and re-measuring gives 512px
+of hero in a 360px window before, 487px after. The `svh` guard caps the
+mark at 122px there and makes the overflow smaller, not larger. Not fixed
+here, because fixing it properly means reflowing the hero for short
+landscape, which is a bigger change than this request.
+
+## The worry that did not pan out
+
+Widening the beam in the previous pass raised a fair question: on a small
+screen the bolder trace crosses a proportionally larger orange mark, and
+under `difference` orange inverts blue. Counted blue-dominant pixels at the
+worst frame of a full circuit:
+
+| viewport | worst-frame blue pixels |
+|---|---:|
+| 390 | 1.09% |
+| 1400 | 1.72% |
+
+Mobile is **not** worse than desktop. No mitigation needed.
+
+Re-verified after the change: six pages clean (no overflow, one h1, all
+alts, no JS errors), keyboard 6/6 end to end, `reduce` leaves 0 animations
+and a byte-identical canvas on all six, `forced-colors` hides both scope
+layers, no horizontal scroll at any of the ten widths tested.
