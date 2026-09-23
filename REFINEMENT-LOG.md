@@ -1528,3 +1528,71 @@ paid for it: median **16.7ms**, worst 20ms while sweeping the pointer.
 Reduced motion still holds: a pointer sweep across the whole hero leaves the
 canvas byte-identical, `document.getAnimations()` at 0 on all six pages. Two
 rAF loops, nothing under 200ms, six pages clean, keyboard passes end to end.
+
+
+---
+
+# Follow-up: the scope cuts through the type
+
+Client ask (NL): the scope should contrast with the text — when the trace
+passes under the type you should see a dark line across it.
+
+The layer moved from behind the content to **on top of it**, with
+`mix-blend-mode: difference`. One layer then reads two ways: white on the
+near-black page, and dark where it crosses the white title. Behind the text
+it was a decoration; over it, inverting, it is a beam crossing the screen.
+
+`isolation: isolate` on the section keeps the blend inside the hero —
+without it the backdrop reaches past the section and the trace picks up the
+lattice and the grain as well as the type.
+
+## The accent had to come off the blended layer
+
+Difference inverts per channel, so the orange head came out **blue** wherever
+it crossed the white title or the mark — an off-palette colour on the one
+element that is supposed to be the accent.
+
+It could not simply move up the stack inside `.fq-scope`: that has a
+`z-index`, so it forms a stacking context, and a blended child would have
+nothing to blend against. The head now has its own sibling host,
+`.fq-scope-head`, composited normally above the blended trace.
+
+Over the orange mark the white trace still shifts hue — measured at **0.33%
+of pixels** in the mark's box, which reads as a convergence artefact rather
+than a palette break, and is left alone.
+
+## A bug introduced and caught in the same pass
+
+The new head host was not covered by the `forced-colors` rule that hides the
+scope, so high-contrast users would have got a lone orange dot with no trace.
+Both hosts are hidden there now.
+
+## The cost, stated plainly
+
+Blending a full-viewport canvas that repaints every frame is not free, and
+the measurements are worse than anything else in this log:
+
+| | median | p95 | worst |
+|---|---:|---:|---:|
+| before (no blend) | 16.7ms | 17.0ms | 20.6ms |
+| blend, unmitigated | 20.6ms | 33.2ms | 66.0ms |
+| **blend + `contain: paint` + `will-change`** | **18.2–19.6ms** | ~24ms | **36–40ms** |
+
+Isolated by toggling: with the blend off the same build returns to 16.7ms, and
+hiding the head canvas changes nothing — it is the compositing, not the
+drawing. `translateZ`, `will-change`, `contain: paint` and `exclusion` were
+each measured; the two kept are the ones that helped.
+
+So the hero now runs at roughly **52fps instead of 60 while the pointer is
+moving**, with occasional dropped frames. That is a real cost for a real
+effect, and it is the client's call whether to keep it.
+
+**The cheaper alternative, measured and rejected for now:** put the blend on
+`.fq-hero__title` instead and leave the scope behind the content. Same dark
+line through the letters, **16.7ms median / 24.8ms worst**, but the trace
+then disappears behind the mark instead of crossing it.
+
+Everything else holds: six pages clean, hero still exactly one screen at
+390/768/1600, four transition routes settle, `forced-colors` hides both
+layers, and under `reduce` a full pointer sweep leaves the canvas
+byte-identical with `getAnimations()` at 0.

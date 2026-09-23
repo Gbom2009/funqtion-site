@@ -63,6 +63,18 @@
     if (!cx) return;
     host.appendChild(cv);
 
+    // The accent head gets its own canvas in a sibling host, so the
+    // difference blend on the trace never inverts it. See the note on
+    // .fq-scope-head in primitives.css.
+    var headHost = document.getElementById('fq-scope-head');
+    var hv = null, hx = null;
+    if (headHost) {
+      hv = document.createElement('canvas');
+      hv.className = 'fq-scope__head';
+      hx = hv.getContext('2d');
+      if (hx) { headHost.appendChild(hv); } else { hv = null; }
+    }
+
     var w = 0, h = 0, dpr = 1, rx = 0, ry = 0, ox = 0, oy = 0;
     function size() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -71,6 +83,12 @@
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
       cx.setTransform(1, 0, 0, 1, 0, 0);
       cx.scale(dpr, dpr);
+      if (hx) {
+        hv.width = cv.width; hv.height = cv.height;
+        hx.setTransform(1, 0, 0, 1, 0, 0);
+        hx.scale(dpr, dpr);
+        hx.lineCap = 'round'; hx.lineJoin = 'round';
+      }
       cx.lineCap = 'round'; cx.lineJoin = 'round';
       // Sized off each axis rather than the short side. Driving both from
       // Math.min meant the figure shrank to whatever the smaller dimension
@@ -223,15 +241,16 @@
 
       // The beam head: the one accent in this layer, and now big enough to
       // find. It was 2.3px, which is a speck on a 1400px screen.
-      if (n) {
+      if (hx) { hx.clearRect(0, 0, w, h); }
+      if (n && hx) {
         var head = trail[n - 1];
-        cx.fillStyle = '#f68712';
-        cx.shadowColor = '#f68712';
-        cx.shadowBlur = 26;
-        cx.beginPath();
-        cx.arc(head.x, head.y, HEAD_R, 0, Math.PI * 2);
-        cx.fill();
-        cx.shadowBlur = 0;
+        hx.fillStyle = '#f68712';
+        hx.shadowColor = '#f68712';
+        hx.shadowBlur = 26;
+        hx.beginPath();
+        hx.arc(head.x, head.y, HEAD_R, 0, Math.PI * 2);
+        hx.fill();
+        hx.shadowBlur = 0;
       }
 
       raf = requestAnimationFrame(frame);
@@ -246,6 +265,7 @@
       running = false;
       if (raf) { cancelAnimationFrame(raf); raf = 0; }
       trail.length = 0;
+      if (hx) { hx.clearRect(0, 0, w, h); }
     }
 
     var mq = window.matchMedia('(prefers-reduced-motion: reduce)');

@@ -821,27 +821,57 @@
 
 /* ===========================================================================
    11c. The hero oscilloscope (js/scope.js, home page only)
-   The hero section is the positioning context; the canvas fills it, sits
-   behind the content, and never intercepts a pointer.
+   The hero section is the positioning context; the canvas fills it and never
+   intercepts a pointer.
+
+   It sits ON TOP of the content and blends with difference, so the trace
+   inverts against whatever it crosses: white on the near-black page, and
+   black where it runs over the white title. One layer reading two ways is
+   the whole point -- behind the text it was a decoration, over it with
+   difference it is genuinely a beam crossing the screen.
+
+   isolation on the section keeps the blend inside the hero. Without it the
+   backdrop reaches past the section to the page behind, and the trace picks
+   up the lattice and the grain as well as the type.
    =========================================================================== */
 
-.fq-hero-section { position: relative; }
+/* contain: paint gives the compositor a fixed area to re-blend each frame,
+   which measurably takes the edge off the difference pass below. */
+.fq-hero-section { position: relative; isolation: isolate; contain: paint; }
 
 .fq-scope {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
+  mix-blend-mode: difference;
+  overflow: clip;
+  pointer-events: none;
+  will-change: opacity;     /* keeps the blended layer promoted */
+}
+
+/* The beam head rides on its own unblended layer, a sibling rather than a
+   child. Difference inverts per channel, so the orange head came out blue
+   wherever it crossed the white title or the mark -- a colour the palette
+   does not contain, on the one element that is supposed to be the accent.
+   It cannot live inside .fq-scope either: that has a z-index, so it forms a
+   stacking context, and a blended child would have nothing to blend with. */
+.fq-scope-head {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
   overflow: clip;
   pointer-events: none;
 }
-.fq-scope__layer { display: block; inline-size: 100%; block-size: 100%; }
+.fq-scope__layer,
+.fq-scope__head { display: block; inline-size: 100%; block-size: 100%; }
 
 /* The hero content sits above the trace. */
 .fq-hero-section > .fq-cell { position: relative; z-index: 1; }
 
 /* Decoration; forced colours cannot render a phosphor trail. */
 @media (forced-colors: active) {
-  .fq-scope { display: none; }
+  .fq-scope,
+  .fq-scope-head { display: none; }
 }
 
 /* ===========================================================================
