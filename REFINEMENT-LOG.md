@@ -1406,3 +1406,60 @@ animations, no errors. Reduced motion still creates no transition
 (`swap:false|reveal:false`). Mark clear of both viewport edges. Six pages
 clean, keyboard passes end to end on all six, `getAnimations()` 0 and every
 canvas at 0.00% under `reduce`.
+
+
+---
+
+# Follow-up: the scope, bigger and tunable
+
+Client ask: make the oscilloscope more interactive and bigger.
+
+## Interactive: you turn its knobs
+
+**The pointer retunes the figure.** X pulls the frequency ratio ±0.42 around
+its 3:2 base; Y pulls the vertical gain ±45%. Both ease toward the target at
+0.055 per frame and ease back to rest when the pointer leaves, so the figure
+retunes the way a dial moves rather than snapping.
+
+That is the honest interaction for this instrument. An X-Y scope's figure is
+decided by the two input frequencies and the gain on each axis, so pointing
+at it and changing the shape is turning its knobs — not steering a toy. The
+same reasoning that rejected a VU meter applies in reverse here: this is what
+the control actually does.
+
+Measured, the shape genuinely changes: at the far left the ratio falls to
+about 1.08 and the figure opens into a near-1:1 ellipse; at the far right it
+rises to about 1.92 and closes into a denser knot.
+
+Three details worth the words:
+
+- **Bound on the window, not the host.** `.fq-scope` is `pointer-events:
+  none`, so it can never receive an event of its own. Listening wider also
+  means the whole first screen tunes the figure, not just the pixels over it.
+- **Touch pointermoves are ignored.** On a phone a `pointermove` is usually
+  a scroll, and retuning the figure while someone drags the page is noise.
+- **The handler only stores a target.** All the work is in the frame loop, so
+  a fast pointer cannot outrun the renderer. Measured while sweeping the
+  pointer: median frame interval 16.7ms, worst 17.8ms — a full 60fps, no
+  change from idle.
+
+## Big
+
+`rx` and `ry` are sized off each axis of the host (0.46 and 0.44) instead of
+both off `Math.min(w, h)`. Driving both from the short side meant the figure
+shrank to whatever the smaller dimension allowed and left a wide screen
+mostly empty. Painted extent at 1400×795: **x 8–1392, y 174–730** — it fills
+the frame now.
+
+## Safety
+
+`prefers-reduced-motion` was the thing to get right, because interactivity is
+a new way to make something move. The handler returns immediately under
+`reduce`, so a pointer sweep across the whole hero leaves the canvas
+**byte-identical** — verified by sampling the alpha channel before and after
+and comparing, with `document.getAnimations()` at 0.
+
+Still two rAF loops; pointer input adds none. Nothing loops faster than
+200ms. Every mark still fades within one circuit, so WCAG 2.2.2 owes no
+pause control. Six pages clean, keyboard passes end to end on all six, hero
+still exactly one screen at 390/768/1600.
