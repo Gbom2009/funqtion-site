@@ -143,14 +143,6 @@
 }
 .fq-index-list li:last-child .fq-index-list__row { border-block-end: var(--fq-rule); }
 
-.fq-index-list__num {
-  flex: 0 0 auto;
-  inline-size: 3ch;
-  color: var(--fq-text-quiet);
-  font-size: var(--fq-size-legend);
-  line-height: var(--fq-leading-solid);
-  transition: color var(--fq-dur-snap) ease;
-}
 .fq-index-list__label {
   flex: 1 1 auto;
   color: var(--fq-text);
@@ -202,15 +194,12 @@
   transform-origin: left center;
 }
 
-.fq-index-list__num,
 .fq-index-list__label,
 .fq-index-list__arrow { will-change: transform; }
 
 .fq-index-list__arrow { display: inline-block; }
 
 /* Colour is the base layer and works with no motion at all. */
-.fq-index-list__row:hover .fq-index-list__num,
-.fq-index-list__row:focus-visible .fq-index-list__num { color: var(--fq-accent); }
 .fq-index-list__row:hover .fq-index-list__arrow,
 .fq-index-list__row:focus-visible .fq-index-list__arrow { color: var(--fq-text-strong); }
 
@@ -219,7 +208,6 @@
   .fq-index-list li:last-child .fq-index-list__row::after {
     transition: transform 220ms var(--fq-ease-machine);
   }
-  .fq-index-list__num,
   .fq-index-list__label { transition: transform 180ms var(--fq-ease-machine),
                                       color var(--fq-dur-snap) ease; }
   .fq-index-list__arrow { transition: transform 180ms var(--fq-ease-machine),
@@ -230,8 +218,6 @@
   .fq-index-list li:last-child .fq-index-list__row:hover::after,
   .fq-index-list li:last-child .fq-index-list__row:focus-visible::after { transform: scaleX(1); }
 
-  .fq-index-list__row:hover .fq-index-list__num,
-  .fq-index-list__row:focus-visible .fq-index-list__num,
   .fq-index-list__row:hover .fq-index-list__label,
   .fq-index-list__row:focus-visible .fq-index-list__label { transform: translateX(10px); }
   .fq-index-list__row:hover .fq-index-list__arrow,
@@ -381,7 +367,6 @@
 .fq-tracks { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--fq-space-8); }
 
 .fq-track { display: grid; gap: var(--fq-space-3); }
-.fq-track__head { display: flex; align-items: center; gap: var(--fq-space-3); }
 .fq-track iframe {
   inline-size: 100%;
   block-size: 152px;

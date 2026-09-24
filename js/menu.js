@@ -53,16 +53,17 @@
       // Wait for the rows to travel back behind their masks. transitionend
       // BUBBLES, so listening on the dialog fired on the FIRST row to finish
       // (250ms) and cut the outbound stagger in half: measured, the dialog
-      // closed at 285ms while the last row needs 525ms. Listen on the last
-      // thing still moving instead, row 6's index, whose delay is
-      // calc(5 * 0.05s + 0.025s) = 275ms plus a 250ms duration.
+      // closed at 285ms while the last row needs its full delay. Listen on
+      // the last thing still moving instead, row 6's label, whose delay is
+      // calc(5 * 0.05s) = 250ms plus a 250ms duration. (It used to be row 6's
+      // index, half a step behind the label; the numerals are gone.)
       var done = false;
       var finish = function () {
         if (done) return;
         done = true;
         menu.close();
       };
-      var last = menu.querySelector('.fq-menu__list li:last-child .fq-menu__index');
+      var last = menu.querySelector('.fq-menu__list li:last-child .fq-menu__label');
       (last || menu).addEventListener('transitionend', finish, { once: true });
       window.setTimeout(finish, 600);
     }
