@@ -1733,3 +1733,81 @@ Re-verified after the change: six pages clean (no overflow, one h1, all
 alts, no JS errors), keyboard 6/6 end to end, `reduce` leaves 0 animations
 and a byte-identical canvas on all six, `forced-colors` hides both scope
 layers, no horizontal scroll at any of the ten widths tested.
+
+---
+
+# The numbering comes out
+
+Client: "haal de bennumering weg", confirmed as all four systems.
+
+The site was built on a datasheet conceit and numbered almost everything.
+Seven places carried an index:
+
+| where | what |
+|---|---|
+| top bar | `FQ-01` … `FQ-06` part number |
+| dialog menu | `01`–`06` beside each link |
+| page eyebrow | `01 / Index` … `06 / Muziek aanrader` |
+| home index list | `02`–`06` before each row |
+| `over.html` | `01` / `02` before each member |
+| `feesten.html` | `01`–`04` tags on the event images |
+| `tip.html` | `01`–`09` before each track |
+| `bieden.html` | `01 / Audio`, `02 / Licht` headings **and** an `01`–`04` datasheet column |
+
+All gone, with the dead CSS (about 70 lines across the two sheets) and one
+JS reference. 155,229 bytes against 163,860 on main: **8,631 bytes lighter**.
+
+## Four things the removal broke, and what they needed
+
+**1. The menu lost its current-page marker.** The rule was "one accent
+element per row, not two: the label goes bright, the index carries the
+colour". With the numeral gone, "bright" is exactly what hover already
+does, so the current page became indistinguishable from a hovered one. The
+accent moved onto the label — still one accent element per row. Measured
+8.19:1 against the menu background, against 6.18:1 for the others, and
+`aria-current="page"` was carrying it for assistive tech the whole time.
+
+**2. `menu.js` was listening to a deleted element.**
+
+```
+var last = menu.querySelector('.fq-menu__list li:last-child .fq-menu__index');
+(last || menu).addEventListener('transitionend', finish, { once: true });
+```
+
+The `||` fallback meant no error and no failing test — it silently
+degraded into the exact bug the comment above it was written to prevent.
+`transitionend` bubbles, so listening on the dialog fires on the *first*
+row to finish and closes the menu at ~250ms while the last row is still
+travelling. Repointed at row 6's label, whose delay is
+`calc(5 * 0.05s)` = 250ms plus a 250ms duration. Measured close: **546 /
+556 / 565ms** — past the 500ms the last row needs and under the 600ms
+backstop, so the listener is doing the work, not the timer.
+
+**3. `bieden.html` had the same word twice.** `01 / Audio` in the rail over
+`Audio` as the heading read as a section marker over a title; `Audio` over
+`Audio` reads as a mistake. The rail `h2` is the invented element — the
+`h3` carries the brief's copy, including the lowercase `licht` that
+CONTENT.md says to keep. So the rail cell went and the body heading became
+the section's `h2`. The content cell is placed by `--col-start:5`, so
+dropping the empty 3-span cell beside it moves nothing.
+
+**4. Orphans.** Each `tip.html` track head was a tick plus a numeral, so
+the head went with it and the tracks are now just their embeds. The event
+tag was the only absolutely positioned child of `.fq-event__media`, so its
+`position: relative` went too. `.fq-cursor` stays — the home descriptor
+still uses one.
+
+## The one I nearly missed
+
+A first sweep on the obvious class names came back clean. A second sweep
+for *any* two-digit text node in the markup —
+`grep -rnoE '>[[:space:]]*[0-9]{2}[[:space:]]*<'` — found four more on
+`bieden.html`: an `aria-hidden` index column in the inventory datasheet
+under a class name (`fq-datasheet__value--index`) that the first pass
+hadn't thought to look for. Searching for the shape of the content beats
+searching for the names I remembered giving it.
+
+Verified after: six pages clean, keyboard 6/6, all four transition routes
+settle with the mark landing at 32×32 in the bar and no leftover
+animations, `reduce` leaves 0 animations and a byte-identical canvas,
+`forced-colors` hides both scope layers with the index rows still visible.

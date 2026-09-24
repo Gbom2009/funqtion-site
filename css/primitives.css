@@ -78,15 +78,6 @@
   line-height: var(--fq-leading-solid);
 }
 
-/* The index numeral. Padded to two digits in the markup, tabular here. */
-.fq-index {
-  color: var(--fq-text-quiet);
-  font-family: var(--fq-font-mono);
-  font-size: var(--fq-size-legend);
-  font-weight: var(--fq-weight-light);
-  line-height: var(--fq-leading-solid);
-}
-
 .fq-h1 {
   margin: 0 0 var(--fq-space-5);
   text-wrap: balance;
@@ -314,10 +305,6 @@
   font-weight: var(--fq-weight-light);
   line-height: var(--fq-leading-tight);
 }
-.fq-datasheet__value--end { text-align: end; }
-.fq-datasheet__value--index {
-  color: var(--fq-text-quiet);
-}
 
 @media screen and (max-width: 767px) {
   .fq-datasheet__row { gap: var(--fq-space-4); }
@@ -360,13 +347,6 @@
   font-size: var(--fq-size-data);
   letter-spacing: var(--fq-track-display);
 }
-/* Where a normal brand would put a tagline, put a part number. (brief 2.1) */
-.fq-topbar__partno {
-  color: var(--fq-text-quiet);
-  font-size: var(--fq-size-legend);
-}
-@media screen and (max-width: 479px) { .fq-topbar__partno { display: none; } }
-
 /* The desktop inline nav. Below 767px the dialog menu is the only nav. */
 .fq-topnav { display: flex; align-items: center; gap: var(--fq-space-5); }
 /* Mask-and-swap: the <a> is a one-line mask, a two-copy column slides up
@@ -523,36 +503,23 @@
   letter-spacing: var(--fq-track-display);
   transition: color var(--fq-dur-snap) ease;
 }
-.fq-menu__index {
-  display: block;
-  text-align: end;
-  color: var(--fq-text-quiet);
-  font-family: var(--fq-font-mono);
-  font-size: var(--fq-size-data);
-  font-weight: var(--fq-weight-light);
-  line-height: var(--fq-leading-solid);
-}
 .fq-menu__row:hover .fq-menu__label,
 .fq-menu__row:focus-visible .fq-menu__label { color: var(--fq-text-strong); }
-/* One accent element per row, not two: the label goes bright, the index
-   carries the colour. */
-.fq-menu__row[aria-current="page"] .fq-menu__label { color: var(--fq-text-strong); }
-.fq-menu__row[aria-current="page"] .fq-menu__index { color: var(--fq-accent); }
+/* The numeral used to carry the accent while the label only went bright.
+   With the numeral gone, "bright" is exactly what hover does, so the current
+   page would stop being distinguishable. The accent moves to the label —
+   still one accent element per row. */
+.fq-menu__row[aria-current="page"] .fq-menu__label { color: var(--fq-accent); }
 
-/* The mask reveal. Two tracks, offset by half a step, staggered per row. */
+/* The mask reveal, staggered per row. */
 @media (prefers-reduced-motion: no-preference) {
-  .fq-menu__label,
-  .fq-menu__index {
+  .fq-menu__label {
     transform: translateY(110%);
     transition: transform var(--fq-dur-reveal) var(--fq-ease-machine),
                 color var(--fq-dur-snap) ease;
     transition-delay: calc(var(--row, 0) * var(--fq-stagger));
   }
-  .fq-menu__index {
-    transition-delay: calc(var(--row, 0) * var(--fq-stagger) + (var(--fq-stagger) / 2));
-  }
-  .fq-menu.is-open .fq-menu__label,
-  .fq-menu.is-open .fq-menu__index { transform: translateY(0); }
+  .fq-menu.is-open .fq-menu__label { transform: translateY(0); }
 }
 
 .fq-menu__foot {
@@ -569,7 +536,6 @@
    =========================================================================== */
 
 .fq-event__media {
-  position: relative;
   overflow: hidden;
   background: var(--fq-surface-inset);
 }
@@ -580,23 +546,6 @@
   aspect-ratio: 1;
   object-fit: cover;
 }
-/* The index tag sits on the image, bracketed on three sides like the
-   reference's partner tag. */
-.fq-event__tag {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  margin: 0;
-  padding: 0.6rem 0.5rem 0.5rem;
-  background: color-mix(in srgb, var(--fq-page) 80%, transparent);
-  border-block-end: 1px solid var(--fq-bashed-white);
-  border-inline-end: 1px solid var(--fq-bashed-white);
-  color: var(--fq-bashed-white);
-  text-transform: uppercase;
-  font-size: var(--fq-size-legend);
-  line-height: var(--fq-leading-solid);
-}
-
 .fq-event__title {
   margin: 0;
   color: var(--fq-text);
@@ -616,8 +565,8 @@
   background: var(--fq-text);
   flex: 0 0 auto;
 }
-/* One "live" mark per site, on the home descriptor. The reference's own date
-   square is off-white; nine accent blocks down a track list is overshoot. */
+/* One "live" mark per site, on the home descriptor. The track list used to
+   carry nine of these beside its numerals; both went with the numbering. */
 .fq-cursor--live { background: var(--fq-accent); }
 
 /* ===========================================================================
