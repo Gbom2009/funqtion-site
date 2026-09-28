@@ -1811,3 +1811,59 @@ Verified after: six pages clean, keyboard 6/6, all four transition routes
 settle with the mark landing at 32×32 in the bar and no leftover
 animations, `reduce` leaves 0 animations and a byte-identical canvas,
 `forced-colors` hides both scope layers with the index rows still visible.
+
+---
+
+# An unlisted page
+
+Client supplied a finished deck — "Van Huurder naar Eigenaar: de Nieuwe
+Venue-Strategie", nine slides, its own navy/gold/Inter design — and asked
+for it on the site, reachable by link only.
+
+Added as `venue-strategie.html`. It is self-contained apart from Google
+Fonts, which the rest of the site already loads, so it needs nothing from
+`primitives.css`, `site.css` or any of the scripts. Nothing links to it and
+it links nothing back: checked both directions.
+
+## Four changes to the file as supplied
+
+**`noindex, nofollow`.** "Link only" does not survive contact with a
+crawler. GitHub Pages is indexed, so without this the deck turns up in
+search and the requirement quietly stops being true. No `robots.txt`
+entry — that file is public and would publish the very path it is meant to
+keep quiet.
+
+**Reduced motion.** House rule for this site is that everything dies under
+`prefers-reduced-motion`. The deck had a slide transition, a staggered
+content reveal and an infinite `sway` on the drag cue. All off; slides cut,
+content is simply there on arrival. Verified: `getAnimations()` is 0 on
+load and still 0 after navigating, and the slides still change.
+
+**`inert` on the eight slides you are not looking at.** All nine live in
+the DOM at once and off-screen ones were hidden by `opacity` alone, so a
+screen reader read the whole deck as one continuous page and Tab reached
+the source link on slide 9 from slide 1. Keyed to `nearest` rather than the
+`ad < 0.05` window `pointerEvents` uses, so exactly one slide is live even
+mid-drag. Verified: 8 inert at all times, and that link is reachable from
+slide 9 and not from slide 1.
+
+**A rotate prompt on narrow portrait screens.** A 1920×1080 canvas scaled
+to fit a portrait phone is the one place this design falls over:
+
+| viewport | stage | 34px body renders at | 24px legend at |
+|---|---|---:|---:|
+| 390×844 phone portrait | 367×206 | **6.5px** | 4.6px |
+| 844×390 phone landscape | 652×367 | 11.5px | 8.1px |
+| 768×1024 tablet portrait | 722×406 | 12.8px | 9.0px |
+| 1024×768 tablet landscape | 963×541 | 17.0px | 12.0px |
+
+6.5px is not small, it is unreadable, and a link that gets shared gets
+opened on a phone. The prompt is pure CSS on
+`(max-width:820px) and (orientation:portrait)`, so it leaves by itself the
+moment the phone turns, and it has a dismiss button because a viewer who
+cannot rotate must still reach the deck. Verified at five viewports: shows
+at 390×844 and 768×1024, hidden at 844×390, 900×1200 and 1600×1000;
+dismissing it leaves the deck driving normally.
+
+Weight: 51,839 bytes, and it loads none of the site's own CSS or JS. The
+six site pages are untouched and still audit clean.
