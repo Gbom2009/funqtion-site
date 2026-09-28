@@ -1952,3 +1952,74 @@ Shipped with an **empty** vault on purpose. Seeding it would have meant
 choosing the password, and the first ciphertext committed would be
 encrypted under one that had been written down. Setting it up is four steps
 in `add.html` and the password never leaves the browser.
+
+*Superseded below: the client asked for the deck to be put in, so the vault
+now ships seeded.*
+
+
+---
+
+# Seeding the vault, and picking a password badly first
+
+Client: "add the value page to unlist" — the venue deck.
+
+That forced the decision the previous pass had deliberately avoided:
+someone has to choose the password. Asked to do it, so it got generated
+here and handed over out of band.
+
+## The first password I generated was not strong enough
+
+A six-word passphrase off a wordlist written out by hand:
+
+> 95 words in the list, 6 drawn → **39 bits**
+
+39 bits sounds fine and is not. Against PBKDF2 at 600k iterations, one GPU
+doing ~10^5 guesses a second gets through half that space in about two
+months. The wordlist was the problem — entropy per word is
+`log2(list length)`, and 95 words is 6.6 bits each, so reaching 80 bits
+would have needed thirteen words. No system wordlist on the box to borrow
+a real one from.
+
+So: 16 characters of Crockford base32 instead, which drops `I`, `L`, `O`
+and `U` so nothing is confusable with `1` or `0` and no accidental words
+appear. 16 × 5 = **80 bits**, in 19 keystrokes with the grouping hyphens.
+
+| attacker | rate | average time to find it |
+|---|---|---:|
+| one GPU | 10⁵/s | 1.9 × 10¹¹ years |
+| a serious rig | 10⁶/s | 1.9 × 10¹⁰ years |
+| a nation state | 10⁹/s | 1.9 × 10⁷ years |
+
+The lesson is the one that keeps recurring in this log: a number that
+*sounds* adequate is not a measurement. Computing the entropy took one line
+and changed the answer.
+
+## The plaintext page had to go
+
+Leaving `venue-strategie.html` at its own URL would have made the vault
+copy decorative — the requirement is that a direct link does not work.
+Removed. Verified after: `/venue-strategie.html` → **404**, while
+`/unlist/vault/venue-strategie.enc` → 200 and 51,855 bytes at **36.9%
+printable**, containing none of `DOCTYPE`, `Khandheria`, `Eigenaar`,
+`slide` or `ERIA`.
+
+One stale reference came with it: `add.html` suggested
+`venue-strategie.html` as the example path to import, a file that no longer
+exists. Changed to a generic one.
+
+## Verified on the seeded vault
+
+Locked, the page body contains no title, note or date — the manifest is
+ciphertext, so there is nothing to leak. Wrong password is refused, the
+right one lists one page with its note and date, the deck opens in the
+sandboxed frame and navigates, Escape closes it from inside the frame.
+Mobile at 390 unlocks in 289ms with no horizontal scroll. Zero errors.
+
+## Still true, and worth repeating
+
+The deck's plaintext is in this public repo's history from the commit that
+first added it. Deleting the file does not remove it, and no password
+protects it. Everything added to the vault from here on never enters the
+repo in the clear, so for those the guarantee holds completely — but for
+this one page it does not, and saying otherwise would be the kind of
+comfortable lie this log exists to avoid.
