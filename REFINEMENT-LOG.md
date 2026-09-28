@@ -1867,3 +1867,159 @@ dismissing it leaves the deck driving normally.
 
 Weight: 51,839 bytes, and it loads none of the site's own CSS or JS. The
 six site pages are untouched and still audit clean.
+
+---
+
+# /unlist: a gate that is a key, not a check
+
+Client wants a `/unlist` page: password first, then a list of private pages,
+built from whatever is actually there — and "if the password has not been
+entered you can't access the subpages even with the direct link".
+
+That last clause rules out the obvious implementation.
+
+## Why a login form would have been a lie
+
+A static host has no server-side auth. A JavaScript gate is a bouncer with
+no door: the file still sits at a URL, and `curl` does not run your gate.
+Every "password-protect a static page" snippet that compares a hash and
+then reveals a `<div>` fails the exact requirement being asked for here.
+
+So the gate is not a check, it is a **key**. A vaulted page is stored only
+as AES-GCM ciphertext and the plaintext exists nowhere on the server.
+
+| | |
+|---|---|
+| KDF | PBKDF2-SHA256, 600,000 iterations (OWASP 2023 floor), 16-byte random salt |
+| cipher | AES-GCM 256, fresh random 96-bit IV per encryption |
+| wrong password | no check value needed — GCM is authenticated, so `decrypt()` throws. That *is* the check |
+
+Measured on the built vault: the payload decodes to 51,855 bytes that are
+**37.0% printable ASCII**, which is what random bytes look like; HTML is
+~99%. Grepping the stored file for `DOCTYPE`, `script`, `slide`, `Venue`,
+`Khandheria`, `ERIA` returns zero hits.
+
+## The manifest is encrypted too
+
+`vault/index.json` holds the salt in the clear — it has to — but the page
+list is ciphertext. So the *titles* of the private pages are not readable
+either, and the index is genuinely dynamic: `/unlist/` renders whatever the
+decrypted manifest says exists, and the tool rewrites it on every add and
+remove. Before unlocking, `document.body.innerText` contains none of it —
+checked, not assumed.
+
+## Three things that only showed up by running it
+
+**A lost escape broke the whole module.** `'pagina's'` reached the file
+as `'pagina's'`, a syntax error that killed the script, so neither the gate
+nor the empty state rendered — and the failure looked like a logic bug, not
+a parse error. Now every inline module gets extracted and run through
+`node --check` before it is trusted.
+
+**Escape stopped working the moment you clicked the deck.** The viewer frame
+is sandboxed without `allow-same-origin`, which is the point — it gets an
+opaque origin and cannot reach this page or the key held in it. But that
+also means the parent cannot hear keys inside it. First test passed because
+focus was still in the parent; the second, after clicking into the deck,
+did not. Fixed with a listener appended to the decrypted HTML that relays
+Escape over `postMessage`, verified by identity (`e.source ===
+vframe.contentWindow`) since the origin is opaque. If a vaulted page ever
+carries a CSP that blocks it, the Close button still works.
+
+**`srcdoc = 'about:blank'` renders that string as text.** Closing the viewer
+left the words on screen. `removeAttribute` is the reset.
+
+## Lifecycle, all of it exercised
+
+Create → import → read back → view → **re-key** → remove. After changing the
+password the old one is rejected and the new one opens the same deck. Zero
+console or page errors across the run.
+
+## What this does not do, stated plainly
+
+- **Offline guessing.** Anyone can download the ciphertext and attack it at
+  their own pace. 600k iterations makes each guess cost something; the real
+  defence is passphrase length, so the tool says so and enforces a minimum.
+- **Git history.** Changing the password does not retroactively protect
+  anything: the old ciphertext stays in history and the old password still
+  opens it. Same reason `venue-strategie.html`, already committed in
+  plaintext to a public repo, cannot be un-published by deleting it now.
+- **`file://`.** These two pages need `http://` — ES modules and `fetch`
+  do not work from the filesystem. The six main pages still open from
+  `file://`; this corner of the site does not.
+
+Shipped with an **empty** vault on purpose. Seeding it would have meant
+choosing the password, and the first ciphertext committed would be
+encrypted under one that had been written down. Setting it up is four steps
+in `add.html` and the password never leaves the browser.
+
+*Superseded below: the client asked for the deck to be put in, so the vault
+now ships seeded.*
+
+
+---
+
+# Seeding the vault, and picking a password badly first
+
+Client: "add the value page to unlist" — the venue deck.
+
+That forced the decision the previous pass had deliberately avoided:
+someone has to choose the password. Asked to do it, so it got generated
+here and handed over out of band.
+
+## The first password I generated was not strong enough
+
+A six-word passphrase off a wordlist written out by hand:
+
+> 95 words in the list, 6 drawn → **39 bits**
+
+39 bits sounds fine and is not. Against PBKDF2 at 600k iterations, one GPU
+doing ~10^5 guesses a second gets through half that space in about two
+months. The wordlist was the problem — entropy per word is
+`log2(list length)`, and 95 words is 6.6 bits each, so reaching 80 bits
+would have needed thirteen words. No system wordlist on the box to borrow
+a real one from.
+
+So: 16 characters of Crockford base32 instead, which drops `I`, `L`, `O`
+and `U` so nothing is confusable with `1` or `0` and no accidental words
+appear. 16 × 5 = **80 bits**, in 19 keystrokes with the grouping hyphens.
+
+| attacker | rate | average time to find it |
+|---|---|---:|
+| one GPU | 10⁵/s | 1.9 × 10¹¹ years |
+| a serious rig | 10⁶/s | 1.9 × 10¹⁰ years |
+| a nation state | 10⁹/s | 1.9 × 10⁷ years |
+
+The lesson is the one that keeps recurring in this log: a number that
+*sounds* adequate is not a measurement. Computing the entropy took one line
+and changed the answer.
+
+## The plaintext page had to go
+
+Leaving `venue-strategie.html` at its own URL would have made the vault
+copy decorative — the requirement is that a direct link does not work.
+Removed. Verified after: `/venue-strategie.html` → **404**, while
+`/unlist/vault/venue-strategie.enc` → 200 and 51,855 bytes at **36.9%
+printable**, containing none of `DOCTYPE`, `Khandheria`, `Eigenaar`,
+`slide` or `ERIA`.
+
+One stale reference came with it: `add.html` suggested
+`venue-strategie.html` as the example path to import, a file that no longer
+exists. Changed to a generic one.
+
+## Verified on the seeded vault
+
+Locked, the page body contains no title, note or date — the manifest is
+ciphertext, so there is nothing to leak. Wrong password is refused, the
+right one lists one page with its note and date, the deck opens in the
+sandboxed frame and navigates, Escape closes it from inside the frame.
+Mobile at 390 unlocks in 289ms with no horizontal scroll. Zero errors.
+
+## Still true, and worth repeating
+
+The deck's plaintext is in this public repo's history from the commit that
+first added it. Deleting the file does not remove it, and no password
+protects it. Everything added to the vault from here on never enters the
+repo in the clear, so for those the guarantee holds completely — but for
+this one page it does not, and saying otherwise would be the kind of
+comfortable lie this log exists to avoid.

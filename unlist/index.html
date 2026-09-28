@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Kluis — Team Funqtion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Archivo+Black&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-block-size: 100svh;
+    background: var(--fq-page);
+    color: var(--fq-text);
+    font-family: var(--fq-font-mono);
+    font-size: var(--fq-size-body);
+    line-height: var(--fq-leading-prose);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: var(--fq-focus-width) solid var(--fq-focus-color);
+    outline-offset: var(--fq-focus-offset);
+  }
+  .wrap {
+    max-inline-size: 760px;
+    margin-inline: auto;
+    padding: var(--fq-space-10) var(--fq-gutter) var(--fq-space-15);
+  }
+  .label {
+    margin: 0;
+    color: var(--fq-text-quiet);
+    text-transform: uppercase;
+    font-size: var(--fq-size-legend);
+    letter-spacing: var(--fq-track-open);
+    line-height: var(--fq-leading-solid);
+  }
+  h1 {
+    margin: var(--fq-space-4) 0 0;
+    font-family: var(--fq-font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: var(--fq-track-display);
+    font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3rem);
+    line-height: 1.05;
+    color: var(--fq-text-strong);
+  }
+  .lede { margin: var(--fq-space-5) 0 0; color: var(--fq-text-dim); max-inline-size: 58ch; }
+
+  /* ---------- the gate ---------- */
+  form { margin-block-start: var(--fq-space-10); }
+  .field { display: flex; flex-wrap: wrap; gap: var(--fq-space-3); align-items: stretch; }
+  input[type="password"], input[type="text"] {
+    flex: 1 1 16rem;
+    min-inline-size: 0;
+    padding: var(--fq-space-3) var(--fq-space-4);
+    background: var(--fq-surface-inset);
+    border: var(--fq-rule);
+    color: var(--fq-text-strong);
+    font: inherit;
+    border-radius: 0;
+  }
+  button {
+    padding: var(--fq-space-3) var(--fq-space-5);
+    background: transparent;
+    border: 1px solid var(--fq-text-decorative);
+    color: var(--fq-text-strong);
+    font: inherit;
+    font-size: var(--fq-size-data);
+    text-transform: uppercase;
+    letter-spacing: var(--fq-track-open);
+    cursor: pointer;
+    transition: border-color var(--fq-dur-snap) ease, color var(--fq-dur-snap) ease;
+  }
+  button:hover:not(:disabled) { border-color: var(--fq-accent); color: var(--fq-accent); }
+  button:disabled { opacity: 0.5; cursor: progress; }
+
+  .msg { margin-block-start: var(--fq-space-4); font-size: var(--fq-size-data); min-block-size: 1.4em; }
+  .msg[data-tone="bad"]  { color: var(--fq-accent); }
+  .msg[data-tone="idle"] { color: var(--fq-text-quiet); }
+
+  /* ---------- the index ---------- */
+  #listing { margin-block-start: var(--fq-space-10); }
+  ul { list-style: none; margin: var(--fq-space-5) 0 0; padding: 0; }
+  .row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--fq-space-5);
+    inline-size: 100%;
+    padding: var(--fq-space-4) 0;
+    border-block-start: var(--fq-rule);
+    background: none;
+    border-inline: 0;
+    border-block-end: 0;
+    text-align: start;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: var(--fq-size-body);
+    color: inherit;
+  }
+  li:last-child .row { border-block-end: var(--fq-rule); }
+  .row:hover:not(:disabled) { border-color: var(--fq-rule-color); color: inherit; }
+  .row__title {
+    flex: 1 1 auto;
+    font-family: var(--fq-font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: var(--fq-track-display);
+    font-size: clamp(1rem, 0.85rem + 0.7vw, 1.375rem);
+    line-height: 1.15;
+    color: var(--fq-text);
+    transition: color var(--fq-dur-snap) ease;
+  }
+  .row:hover .row__title, .row:focus-visible .row__title { color: var(--fq-accent); }
+  .row__meta { flex: 0 0 auto; color: var(--fq-text-quiet); font-size: var(--fq-size-legend); }
+  .row__note { margin: var(--fq-space-2) 0 0; color: var(--fq-text-dim); font-size: var(--fq-size-data); }
+  .empty { margin-block-start: var(--fq-space-8); color: var(--fq-text-dim); }
+
+  .foot {
+    margin-block-start: var(--fq-space-15);
+    padding-block-start: var(--fq-space-5);
+    border-block-start: var(--fq-rule);
+    display: flex; flex-wrap: wrap; gap: var(--fq-space-5);
+    font-size: var(--fq-size-legend);
+    color: var(--fq-text-quiet);
+  }
+  .foot a { color: var(--fq-text-quiet); }
+  .foot a:hover { color: var(--fq-accent); }
+
+  /* ---------- the viewer ----------
+     A vaulted page is a whole HTML document with its own scripts. It renders
+     in a sandboxed iframe with no allow-same-origin, so it gets an opaque
+     origin and cannot reach this page, its storage, or the key held here. */
+  #viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    background: var(--fq-page);
+  }
+  #viewer.open { display: flex; }
+  .viewer__bar {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: var(--fq-space-4);
+    padding: var(--fq-space-3) var(--fq-gutter);
+    border-block-end: var(--fq-rule);
+  }
+  .viewer__name {
+    flex: 1 1 auto; min-inline-size: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--fq-text-quiet);
+    font-size: var(--fq-size-legend);
+    text-transform: uppercase;
+    letter-spacing: var(--fq-track-open);
+  }
+  #viewer iframe { flex: 1 1 auto; inline-size: 100%; border: 0; display: block; }
+
+  [hidden] { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <p class="label">Team Funqtion — besloten</p>
+  <h1>Kluis</h1>
+  <p class="lede">Deze pagina's staan versleuteld op de server. Zonder het
+    wachtwoord is er niets te lezen — ook niet met een directe link.</p>
+
+  <!-- gate -->
+  <form id="gate" hidden>
+    <label class="label" for="pw">Wachtwoord</label>
+    <div class="field" style="margin-block-start:var(--fq-space-3)">
+      <input id="pw" type="password" autocomplete="current-password"
+             spellcheck="false" autocapitalize="off" required>
+      <button type="submit" id="go">Openen</button>
+    </div>
+    <p class="msg" id="msg" data-tone="idle" role="status" aria-live="polite"></p>
+  </form>
+
+  <!-- index, built from the decrypted manifest -->
+  <div id="listing" hidden>
+    <p class="label" id="count"></p>
+    <ul id="rows"></ul>
+  </div>
+
+  <p class="empty" id="novault" hidden>
+    Er is nog geen kluis ingericht. Open <a href="add.html">add.html</a> om er
+    een aan te maken met je eigen wachtwoord.
+  </p>
+
+  <div class="foot">
+    <a href="../index.html">← Terug naar de site</a>
+    <a href="add.html">Pagina's beheren</a>
+  </div>
+</main>
+
+<div id="viewer" role="dialog" aria-modal="true" aria-label="Besloten pagina">
+  <div class="viewer__bar">
+    <span class="viewer__name" id="vname"></span>
+    <button type="button" id="vclose">Sluiten</button>
+  </div>
+  <iframe id="vframe" title="Besloten pagina"
+          sandbox="allow-scripts allow-popups allow-downloads"
+          allow="fullscreen"></iframe>
+</div>
+
+<script type="module">
+import { loadIndex, unlock, loadEntry } from './vault.js';
+
+var gate    = document.getElementById('gate');
+var pw      = document.getElementById('pw');
+var go      = document.getElementById('go');
+var msg     = document.getElementById('msg');
+var listing = document.getElementById('listing');
+var rows    = document.getElementById('rows');
+var count   = document.getElementById('count');
+var novault = document.getElementById('novault');
+var viewer  = document.getElementById('viewer');
+var vframe  = document.getElementById('vframe');
+var vname   = document.getElementById('vname');
+
+var index = null;
+var key = null;          // lives in memory only; a reload means re-entering
+var manifest = [];
+
+function say(text, tone) {
+  msg.textContent = text;
+  msg.dataset.tone = tone || 'idle';
+}
+
+// Boot: is there a vault at all?
+try {
+  index = await loadIndex();
+  if (index) { gate.hidden = false; pw.focus(); }
+  else       { novault.hidden = false; }
+} catch (err) {
+  gate.hidden = false;
+  say('Kluis kon niet geladen worden: ' + err.message, 'bad');
+}
+
+gate.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  if (!pw.value) return;
+  go.disabled = true;
+  // 600k PBKDF2 rounds block the main thread for about a second. Say so,
+  // otherwise a slow phone looks broken.
+  say('Ontsleutelen…', 'idle');
+  await new Promise(function (r) { requestAnimationFrame(function () { setTimeout(r, 0); }); });
+  try {
+    var res = await unlock(index, pw.value);
+    key = res.key;
+    manifest = res.manifest;
+    pw.value = '';
+    gate.hidden = true;
+    render();
+    openFromHash();
+  } catch (err) {
+    // A wrong key and a corrupt file both land here. To someone typing a
+    // password they are the same event, so do not invite a guess about which.
+    say('Onjuist wachtwoord.', 'bad');
+    go.disabled = false;
+    pw.select();
+  }
+});
+
+function render() {
+  listing.hidden = false;
+  count.textContent = manifest.length === 1
+    ? "1 pagina" : manifest.length + " pagina's";
+  rows.replaceChildren();
+  if (!manifest.length) {
+    var li = document.createElement('li');
+    li.className = 'empty';
+    li.textContent = 'De kluis is leeg. Voeg een pagina toe via add.html.';
+    rows.append(li);
+    return;
+  }
+  manifest.forEach(function (entry) {
+    var li = document.createElement('li');
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'row';
+
+    var wrapEl = document.createElement('span');
+    wrapEl.style.cssText = 'flex:1 1 auto;min-inline-size:0';
+    var title = document.createElement('span');
+    title.className = 'row__title';
+    title.style.display = 'block';
+    title.textContent = entry.title || entry.id;
+    wrapEl.append(title);
+    if (entry.note) {
+      var note = document.createElement('span');
+      note.className = 'row__note';
+      note.style.display = 'block';
+      note.textContent = entry.note;
+      wrapEl.append(note);
+    }
+
+    var meta = document.createElement('span');
+    meta.className = 'row__meta';
+    meta.textContent = entry.added || '';
+
+    btn.append(wrapEl, meta);
+    btn.addEventListener('click', function () { open(entry); });
+    li.append(btn);
+    rows.append(li);
+  });
+}
+
+/* The frame is sandboxed with no allow-same-origin, so the parent cannot
+   listen for keys inside it -- once you click into the page, Escape goes to
+   the frame and never reaches this document. The Close button always works,
+   but Escape should too, so the decrypted HTML gets one appended listener
+   that relays it back over postMessage. If the page carries its own CSP that
+   blocks the script, nothing breaks: the button is still there. */
+var ESC_BRIDGE =
+  '\n<script>document.addEventListener("keydown",function(e){' +
+  'if(e.key==="Escape"&&!document.fullscreenElement){parent.postMessage({fq:"close"},"*");}' +
+  '});<\/script>\n';
+
+window.addEventListener('message', function (e) {
+  // Opaque origin, so identity is the check that means anything here.
+  if (e.source === vframe.contentWindow && e.data && e.data.fq === 'close') close();
+});
+
+async function open(entry) {
+  vname.textContent = entry.title || entry.id;
+  viewer.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  try {
+    vframe.srcdoc = (await loadEntry(key, entry.id)) + ESC_BRIDGE;
+  } catch (err) {
+    vframe.srcdoc = '<p style="font:14px system-ui;padding:2rem;color:#fff;background:#040404">'
+      + 'Kon deze pagina niet openen.</p>';
+  }
+  if (location.hash.slice(1) !== entry.id) history.replaceState(null, '', '#' + entry.id);
+  document.getElementById('vclose').focus();
+}
+
+function close() {
+  viewer.classList.remove('open');
+  vframe.removeAttribute('srcdoc');   // srcdoc='about:blank' renders that as text
+  document.body.style.overflow = '';
+  history.replaceState(null, '', location.pathname + location.search);
+}
+
+function openFromHash() {
+  var id = decodeURIComponent(location.hash.slice(1));
+  if (!id) return;
+  var entry = manifest.find(function (e) { return e.id === id; });
+  if (entry) open(entry);
+}
+
+document.getElementById('vclose').addEventListener('click', close);
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && viewer.classList.contains('open')) close();
+});
+</script>
+</body>
+</html>

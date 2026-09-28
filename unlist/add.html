@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Kluis beheren — Team Funqtion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Archivo+Black&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; min-block-size: 100svh;
+    background: var(--fq-page); color: var(--fq-text);
+    font-family: var(--fq-font-mono); font-size: var(--fq-size-body);
+    line-height: var(--fq-leading-prose); -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: var(--fq-focus-width) solid var(--fq-focus-color); outline-offset: var(--fq-focus-offset); }
+  .wrap { max-inline-size: 860px; margin-inline: auto; padding: var(--fq-space-10) var(--fq-gutter) var(--fq-space-15); }
+  .label { margin: 0; color: var(--fq-text-quiet); text-transform: uppercase;
+           font-size: var(--fq-size-legend); letter-spacing: var(--fq-track-open);
+           line-height: var(--fq-leading-solid); }
+  h1 { margin: var(--fq-space-4) 0 0; font-family: var(--fq-font-display); font-weight: 400;
+       text-transform: uppercase; letter-spacing: var(--fq-track-display);
+       font-size: clamp(1.5rem, 1.1rem + 2vw, 2.5rem); line-height: 1.05; color: var(--fq-text-strong); }
+  h2 { margin: 0; font-family: var(--fq-font-display); font-weight: 400; text-transform: uppercase;
+       letter-spacing: var(--fq-track-display); font-size: 1.125rem; color: var(--fq-text-strong); }
+  p { max-inline-size: 66ch; }
+  .lede { margin: var(--fq-space-5) 0 0; color: var(--fq-text-dim); }
+  section { margin-block-start: var(--fq-space-10); padding-block-start: var(--fq-space-5);
+            border-block-start: var(--fq-rule); }
+  .stack { display: flex; flex-direction: column; gap: var(--fq-space-4); margin-block-start: var(--fq-space-5); }
+  .field { display: flex; flex-wrap: wrap; gap: var(--fq-space-3); align-items: stretch; }
+  input[type="password"], input[type="text"], input[type="file"], textarea {
+    flex: 1 1 15rem; min-inline-size: 0;
+    padding: var(--fq-space-3) var(--fq-space-4);
+    background: var(--fq-surface-inset); border: var(--fq-rule);
+    color: var(--fq-text-strong); font: inherit; border-radius: 0;
+  }
+  textarea { resize: vertical; min-block-size: 3.5rem; }
+  button {
+    padding: var(--fq-space-3) var(--fq-space-5); background: transparent;
+    border: 1px solid var(--fq-text-decorative); color: var(--fq-text-strong);
+    font: inherit; font-size: var(--fq-size-data); text-transform: uppercase;
+    letter-spacing: var(--fq-track-open); cursor: pointer;
+    transition: border-color var(--fq-dur-snap) ease, color var(--fq-dur-snap) ease;
+  }
+  button:hover:not(:disabled) { border-color: var(--fq-accent); color: var(--fq-accent); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.small { padding: var(--fq-space-2) var(--fq-space-3); font-size: var(--fq-size-legend); }
+  .msg { margin-block-start: var(--fq-space-4); font-size: var(--fq-size-data); min-block-size: 1.4em; }
+  .msg[data-tone="bad"]  { color: var(--fq-accent); }
+  .msg[data-tone="good"] { color: var(--fq-text-strong); }
+  .msg[data-tone="idle"] { color: var(--fq-text-quiet); }
+  ul { list-style: none; margin: var(--fq-space-5) 0 0; padding: 0; }
+  li { display: flex; align-items: baseline; gap: var(--fq-space-4);
+       padding: var(--fq-space-3) 0; border-block-start: var(--fq-rule); }
+  li:last-child { border-block-end: var(--fq-rule); }
+  .grow { flex: 1 1 auto; min-inline-size: 0; }
+  .id { color: var(--fq-text-quiet); font-size: var(--fq-size-legend); }
+  .warn { border-inline-start: 2px solid var(--fq-accent); padding-inline-start: var(--fq-space-4);
+          color: var(--fq-text-dim); font-size: var(--fq-size-data); }
+  .files { margin-block-start: var(--fq-space-5); }
+  .files li { gap: var(--fq-space-3); }
+  code { color: var(--fq-text-strong); font-size: var(--fq-size-data); }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="label">Team Funqtion — besloten</p>
+  <h1>Kluis beheren</h1>
+  <p class="lede">Alles gebeurt in je browser. Het wachtwoord en de leesbare
+    pagina's verlaten dit tabblad niet — je downloadt hier alleen versleutelde
+    bestanden, die je daarna in de repo zet.</p>
+
+  <!-- 1. unlock or create -->
+  <section>
+    <h2 id="gateTitle">Kluis openen</h2>
+    <form id="gate" class="stack">
+      <div class="field">
+        <input id="pw" type="password" placeholder="Wachtwoord" autocomplete="current-password"
+               spellcheck="false" autocapitalize="off" required>
+        <input id="pw2" type="password" placeholder="Herhaal wachtwoord" autocomplete="new-password"
+               spellcheck="false" autocapitalize="off" hidden>
+        <button type="submit" id="gateGo">Openen</button>
+      </div>
+      <p class="warn" id="newHint" hidden>Er is nog geen kluis. Kies een lang
+        wachtwoord — liefst een zin van vier of meer woorden. Wie de
+        versleutelde bestanden downloadt kan offline blijven raden, en dan is
+        de lengte van je wachtwoord het enige dat telt. Kwijt is kwijt: er is
+        geen herstel.</p>
+      <p class="msg" id="gateMsg" data-tone="idle" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <!-- 2. add -->
+    <section>
+      <h2>Pagina toevoegen</h2>
+      <div class="stack">
+        <div class="field">
+          <input id="file" type="file" accept=".html,.htm,text/html">
+        </div>
+        <div class="field">
+          <input id="fromPath" type="text" placeholder="…of een pad op deze site, bijv. concept.html">
+          <button type="button" id="fetchBtn">Ophalen</button>
+        </div>
+        <div class="field"><input id="title" type="text" placeholder="Titel"></div>
+        <div class="field"><input id="pid" type="text" placeholder="Korte naam (bestandsnaam en #link)"
+               spellcheck="false" autocapitalize="off"></div>
+        <div class="field"><textarea id="note" placeholder="Korte omschrijving (optioneel)"></textarea></div>
+        <div class="field"><button type="button" id="addBtn" disabled>Toevoegen aan kluis</button></div>
+        <p class="msg" id="addMsg" data-tone="idle" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- 3. contents -->
+    <section>
+      <h2>In de kluis</h2>
+      <ul id="rows"></ul>
+      <p class="msg" id="listMsg" data-tone="idle"></p>
+    </section>
+
+    <!-- 4. change password -->
+    <section>
+      <h2>Wachtwoord wijzigen</h2>
+      <div class="stack">
+        <div class="field">
+          <input id="np" type="password" placeholder="Nieuw wachtwoord" autocomplete="new-password" spellcheck="false">
+          <input id="np2" type="password" placeholder="Herhaal" autocomplete="new-password" spellcheck="false">
+          <button type="button" id="rekeyBtn">Opnieuw versleutelen</button>
+        </div>
+        <p class="warn">Alles wordt opnieuw versleuteld met een nieuw zout, dus
+          je moet daarna élk bestand hieronder vervangen. Let op: de oude
+          versleutelde bestanden blijven in de git-geschiedenis staan en zijn
+          met het oude wachtwoord nog te openen. Een wachtwoord wijzigen
+          beschermt dus wat je hierna toevoegt, niet wat er al stond.</p>
+        <p class="msg" id="rekeyMsg" data-tone="idle" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- 5. download -->
+    <section>
+      <h2>Bestanden opslaan</h2>
+      <p class="lede">Zet deze in <code>unlist/vault/</code> en commit ze.</p>
+      <div class="field" style="margin-block-start:var(--fq-space-5)">
+        <button type="button" id="dlAll">Alles downloaden</button>
+      </div>
+      <ul class="files" id="files"></ul>
+    </section>
+  </div>
+
+  <p class="label" style="margin-block-start:var(--fq-space-10)">
+    <a href="index.html" style="color:var(--fq-text-quiet)">← Naar de kluis</a>
+  </p>
+</main>
+
+<script type="module">
+import { loadIndex, unlock, loadEntry, deriveKey, encryptText,
+         buildIndex, randomBytes, slugify, fromB64 } from './vault.js';
+
+var $ = function (id) { return document.getElementById(id); };
+function say(el, text, tone) { el.textContent = text; el.dataset.tone = tone || 'idle'; }
+function yieldUI() { return new Promise(function (r) { requestAnimationFrame(function () { setTimeout(r, 0); }); }); }
+
+var index = null;       // on-disk index.json, or null when no vault exists
+var creating = false;
+var key = null;
+var salt = null;
+var manifest = [];
+var plain = {};         // id -> decrypted HTML, so a re-key can re-encrypt
+var dirty = new Set();  // files that changed and need downloading
+var pending = null;     // the HTML picked but not yet added
+
+index = await loadIndex();
+if (!index) {
+  creating = true;
+  $('gateTitle').textContent = 'Kluis aanmaken';
+  $('gateGo').textContent = 'Aanmaken';
+  $('pw2').hidden = false;
+  $('newHint').hidden = false;
+}
+
+/* ---------- unlock / create ---------- */
+$('gate').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  $('gateGo').disabled = true;
+  say($('gateMsg'), 'Sleutel afleiden…', 'idle');
+  await yieldUI();
+  try {
+    if (creating) {
+      if ($('pw').value.length < 8) throw new Error('Kies een langer wachtwoord (minstens 8 tekens).');
+      if ($('pw').value !== $('pw2').value) throw new Error('De twee wachtwoorden zijn niet gelijk.');
+      salt = randomBytes(16);
+      key = await deriveKey($('pw').value, salt);
+      manifest = [];
+      dirty.add('index.json');
+    } else {
+      var res = await unlock(index, $('pw').value);
+      key = res.key; manifest = res.manifest;
+      // Keep the existing salt: rebuilding index.json must not silently
+      // re-key the vault. Only the change-password button replaces it.
+      salt = fromB64(index.kdf.salt);
+      // A re-key has to re-encrypt every page, so pull the plaintexts in now.
+      for (var i = 0; i < manifest.length; i++) {
+        plain[manifest[i].id] = await loadEntry(key, manifest[i].id);
+      }
+    }
+    $('pw').value = ''; $('pw2').value = '';
+    $('gate').hidden = true;
+    $('app').hidden = false;
+    renderRows(); renderFiles();
+  } catch (err) {
+    say($('gateMsg'), creating ? err.message : 'Onjuist wachtwoord.', 'bad');
+    $('gateGo').disabled = false;
+  }
+});
+
+/* ---------- picking a page ---------- */
+function stage(html, name) {
+  pending = html;
+  $('addBtn').disabled = false;
+  if (!$('title').value) {
+    var m = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    $('title').value = m ? m[1].trim() : name.replace(/\.html?$/i, '');
+  }
+  // A title makes a long, ugly filename -- the deck's own title slugs to 51
+  // characters. Suggest the source filename instead, and let it be edited.
+  if (!$('pid').value) $('pid').value = slugify(name.replace(/\.html?$/i, ''));
+  say($('addMsg'), name + ' geladen — ' + new Blob([html]).size.toLocaleString('nl-NL') + ' bytes.', 'good');
+}
+
+$('file').addEventListener('change', async function () {
+  var f = this.files && this.files[0];
+  if (!f) return;
+  stage(await f.text(), f.name);
+});
+
+$('fetchBtn').addEventListener('click', async function () {
+  var path = $('fromPath').value.trim().replace(/^\/+/, '');
+  if (!path) return;
+  say($('addMsg'), 'Ophalen…', 'idle');
+  try {
+    var res = await fetch('../' + path, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    stage(await res.text(), path);
+  } catch (err) {
+    say($('addMsg'), 'Ophalen mislukt: ' + err.message, 'bad');
+  }
+});
+
+/* ---------- add ---------- */
+$('addBtn').addEventListener('click', async function () {
+  if (pending == null) return;
+  var title = $('title').value.trim() || 'Zonder titel';
+  var id = slugify($('pid').value.trim() || title);
+  var n = 1, base = id;
+  while (manifest.some(function (e) { return e.id === id; })) id = base + '-' + (++n);
+
+  plain[id] = pending;
+  manifest.push({
+    id: id, title: title, note: $('note').value.trim(),
+    added: new Date().toISOString().slice(0, 10),
+    bytes: new Blob([pending]).size
+  });
+  dirty.add(id + '.enc');
+  dirty.add('index.json');
+
+  pending = null;
+  $('addBtn').disabled = true;
+  $('file').value = ''; $('fromPath').value = '';
+  $('title').value = ''; $('pid').value = ''; $('note').value = '';
+  say($('addMsg'), 'Toegevoegd als ' + id + '. Vergeet niet te downloaden.', 'good');
+  renderRows(); renderFiles();
+});
+
+/* ---------- contents ---------- */
+function renderRows() {
+  var rows = $('rows');
+  rows.replaceChildren();
+  if (!manifest.length) { say($('listMsg'), 'De kluis is leeg.', 'idle'); return; }
+  say($('listMsg'), '', 'idle');
+  manifest.forEach(function (entry, i) {
+    var li = document.createElement('li');
+    var g = document.createElement('span');
+    g.className = 'grow';
+    var t = document.createElement('span');
+    t.textContent = entry.title;
+    t.style.display = 'block';
+    var s = document.createElement('span');
+    s.className = 'id';
+    s.textContent = entry.id + '.enc · ' + entry.added + ' · ' + entry.bytes.toLocaleString('nl-NL') + ' bytes';
+    s.style.display = 'block';
+    g.append(t, s);
+    var rm = document.createElement('button');
+    rm.type = 'button'; rm.className = 'small'; rm.textContent = 'Verwijderen';
+    rm.addEventListener('click', function () {
+      manifest.splice(i, 1);
+      delete plain[entry.id];
+      dirty.add('index.json');
+      say($('listMsg'), 'Verwijderd uit de lijst. Haal ' + entry.id +
+        '.enc ook zelf uit de repo — deze tool kan geen bestanden wissen.', 'bad');
+      renderRows(); renderFiles();
+    });
+    li.append(g, rm);
+    rows.append(li);
+  });
+}
+
+/* ---------- re-key ---------- */
+$('rekeyBtn').addEventListener('click', async function () {
+  if ($('np').value.length < 8) { say($('rekeyMsg'), 'Kies een langer wachtwoord.', 'bad'); return; }
+  if ($('np').value !== $('np2').value) { say($('rekeyMsg'), 'De twee wachtwoorden zijn niet gelijk.', 'bad'); return; }
+  this.disabled = true;
+  say($('rekeyMsg'), 'Opnieuw versleutelen…', 'idle');
+  await yieldUI();
+  salt = randomBytes(16);
+  key = await deriveKey($('np').value, salt);
+  manifest.forEach(function (e) { dirty.add(e.id + '.enc'); });
+  dirty.add('index.json');
+  $('np').value = ''; $('np2').value = '';
+  say($('rekeyMsg'), 'Klaar. Download nu álle bestanden hieronder en vervang ze.', 'good');
+  this.disabled = false;
+  renderFiles();
+});
+
+/* ---------- download ---------- */
+function download(name, text) {
+  var url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  var a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+}
+
+async function build(name) {
+  if (name === 'index.json') {
+    return JSON.stringify(await buildIndex(key, salt, manifest), null, 2);
+  }
+  var id = name.replace(/\.enc$/, '');
+  return JSON.stringify(await encryptText(key, plain[id]), null, 2);
+}
+
+function renderFiles() {
+  var list = $('files');
+  list.replaceChildren();
+  var names = Array.from(dirty).sort();
+  $('dlAll').disabled = !names.length;
+  if (!names.length) {
+    var li = document.createElement('li');
+    li.className = 'id';
+    li.textContent = 'Niets gewijzigd.';
+    list.append(li);
+    return;
+  }
+  names.forEach(function (name) {
+    var li = document.createElement('li');
+    var g = document.createElement('span');
+    g.className = 'grow';
+    var c = document.createElement('code');
+    c.textContent = 'unlist/vault/' + name;
+    g.append(c);
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'small'; b.textContent = 'Download';
+    b.addEventListener('click', async function () { download(name, await build(name)); });
+    li.append(g, b);
+    list.append(li);
+  });
+}
+
+$('dlAll').addEventListener('click', async function () {
+  this.disabled = true;
+  var names = Array.from(dirty).sort();
+  for (var i = 0; i < names.length; i++) {
+    download(names[i], await build(names[i]));
+    // Browsers throttle a burst of downloads; space them out.
+    await new Promise(function (r) { setTimeout(r, 350); });
+  }
+  this.disabled = false;
+});
+</script>
+</body>
+</html>
