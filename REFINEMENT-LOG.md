@@ -1867,3 +1867,88 @@ dismissing it leaves the deck driving normally.
 
 Weight: 51,839 bytes, and it loads none of the site's own CSS or JS. The
 six site pages are untouched and still audit clean.
+
+---
+
+# /unlist: a gate that is a key, not a check
+
+Client wants a `/unlist` page: password first, then a list of private pages,
+built from whatever is actually there — and "if the password has not been
+entered you can't access the subpages even with the direct link".
+
+That last clause rules out the obvious implementation.
+
+## Why a login form would have been a lie
+
+A static host has no server-side auth. A JavaScript gate is a bouncer with
+no door: the file still sits at a URL, and `curl` does not run your gate.
+Every "password-protect a static page" snippet that compares a hash and
+then reveals a `<div>` fails the exact requirement being asked for here.
+
+So the gate is not a check, it is a **key**. A vaulted page is stored only
+as AES-GCM ciphertext and the plaintext exists nowhere on the server.
+
+| | |
+|---|---|
+| KDF | PBKDF2-SHA256, 600,000 iterations (OWASP 2023 floor), 16-byte random salt |
+| cipher | AES-GCM 256, fresh random 96-bit IV per encryption |
+| wrong password | no check value needed — GCM is authenticated, so `decrypt()` throws. That *is* the check |
+
+Measured on the built vault: the payload decodes to 51,855 bytes that are
+**37.0% printable ASCII**, which is what random bytes look like; HTML is
+~99%. Grepping the stored file for `DOCTYPE`, `script`, `slide`, `Venue`,
+`Khandheria`, `ERIA` returns zero hits.
+
+## The manifest is encrypted too
+
+`vault/index.json` holds the salt in the clear — it has to — but the page
+list is ciphertext. So the *titles* of the private pages are not readable
+either, and the index is genuinely dynamic: `/unlist/` renders whatever the
+decrypted manifest says exists, and the tool rewrites it on every add and
+remove. Before unlocking, `document.body.innerText` contains none of it —
+checked, not assumed.
+
+## Three things that only showed up by running it
+
+**A lost escape broke the whole module.** `'pagina's'` reached the file
+as `'pagina's'`, a syntax error that killed the script, so neither the gate
+nor the empty state rendered — and the failure looked like a logic bug, not
+a parse error. Now every inline module gets extracted and run through
+`node --check` before it is trusted.
+
+**Escape stopped working the moment you clicked the deck.** The viewer frame
+is sandboxed without `allow-same-origin`, which is the point — it gets an
+opaque origin and cannot reach this page or the key held in it. But that
+also means the parent cannot hear keys inside it. First test passed because
+focus was still in the parent; the second, after clicking into the deck,
+did not. Fixed with a listener appended to the decrypted HTML that relays
+Escape over `postMessage`, verified by identity (`e.source ===
+vframe.contentWindow`) since the origin is opaque. If a vaulted page ever
+carries a CSP that blocks it, the Close button still works.
+
+**`srcdoc = 'about:blank'` renders that string as text.** Closing the viewer
+left the words on screen. `removeAttribute` is the reset.
+
+## Lifecycle, all of it exercised
+
+Create → import → read back → view → **re-key** → remove. After changing the
+password the old one is rejected and the new one opens the same deck. Zero
+console or page errors across the run.
+
+## What this does not do, stated plainly
+
+- **Offline guessing.** Anyone can download the ciphertext and attack it at
+  their own pace. 600k iterations makes each guess cost something; the real
+  defence is passphrase length, so the tool says so and enforces a minimum.
+- **Git history.** Changing the password does not retroactively protect
+  anything: the old ciphertext stays in history and the old password still
+  opens it. Same reason `venue-strategie.html`, already committed in
+  plaintext to a public repo, cannot be un-published by deleting it now.
+- **`file://`.** These two pages need `http://` — ES modules and `fetch`
+  do not work from the filesystem. The six main pages still open from
+  `file://`; this corner of the site does not.
+
+Shipped with an **empty** vault on purpose. Seeding it would have meant
+choosing the password, and the first ciphertext committed would be
+encrypted under one that had been written down. Setting it up is four steps
+in `add.html` and the password never leaves the browser.
